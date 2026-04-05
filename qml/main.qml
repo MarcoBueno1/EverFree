@@ -18,6 +18,46 @@ ApplicationWindow {
     Material.primary: Material.Green
     Material.accent: Material.Lime
 
+    // ---- Page Component definitions ----
+    Component {
+        id: homeModeComponent
+        HomeModePicker {
+            objectName: "homeModePicker"
+            simpleWelcomeComp: simpleWelcomeComp
+            scanPageComp: scanPageComp
+            stackViewRef: stackView
+        }
+    }
+
+    Component {
+        id: simpleWelcomeComp
+        SimpleWelcome {
+            objectName: "simpleWelcome"
+            scanPageComp: scanPageComp
+            stackViewRef: stackView
+        }
+    }
+
+    Component {
+        id: scanPageComp
+        ScanPage { objectName: "scanPage" }
+    }
+
+    Component {
+        id: selectPageComp
+        SelectPage { objectName: "selectPage" }
+    }
+
+    Component {
+        id: processPageComp
+        ProcessPage { objectName: "processPage" }
+    }
+
+    Component {
+        id: reportPageComp
+        ReportPage { objectName: "reportPage" }
+    }
+
     header: ToolBar {
         Material.background: Material.color(Material.Grey, Material.Shade800)
         Material.elevation: 4
@@ -37,7 +77,6 @@ ApplicationWindow {
 
             Item { Layout.fillWidth: true }
 
-            // Theme toggle
             RoundButton {
                 text: themeManager.darkMode ? "\u2600\uFE0F" : "\uD83C\uDF19"
                 font.pixelSize: 18
@@ -48,7 +87,6 @@ ApplicationWindow {
                 onClicked: themeManager.toggleTheme()
             }
 
-            // Settings button
             RoundButton {
                 text: "\u2699\uFE0F"
                 font.pixelSize: 18
@@ -56,31 +94,44 @@ ApplicationWindow {
                 Material.foreground: Material.foreground
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Configura\u00e7\u00f5es")
-                // onClicked: settingsDialog.open()
+                onClicked: settingsDialog.open()
             }
         }
     }
 
-    footer: ToolBar {
-        Material.background: Material.color(Material.Grey, Material.Shade800)
-        Material.elevation: 2
+    footer: Rectangle {
+        color: Material.color(Material.Grey, Material.Shade900)
+        height: 28
 
         Label {
             anchors.centerIn: parent
-            text: appController.simpleStatus
-            font.pixelSize: 12
-            color: Material.hintTextColor
+            text: appController.simpleStatus || qsTr("Pronto")
+            font.pixelSize: 11
+            color: "#aaaaaa"
             elide: Text.ElideMiddle
-            padding: 8
         }
     }
 
-    // StackView como elemento principal
+    // StackView — starts with SimpleWelcome (default mode)
     StackView {
         id: stackView
         anchors.fill: parent
         anchors.bottomMargin: 0
-        initialItem: pagesComponent
+        initialItem: simpleWelcomeComp
+    }
+
+    // On startup, check if we should show mode picker instead (advanced mode)
+    Timer {
+        id: startupTimer
+        interval: 50
+        repeat: false
+        running: true
+        onTriggered: {
+            if (appController.defaultMode === 2) {
+                stackView.clear()
+                stackView.push(homeModeComponent)
+            }
+        }
     }
 
     // Navigation state controller
@@ -90,92 +141,55 @@ ApplicationWindow {
         function onStateChanged() {
             pushPageForState(appController.state)
         }
-
-        function onSimpleStatusChanged() {
-            // status bar updates automatically via binding
-        }
     }
 
     function pushPageForState(state) {
         switch (state) {
             case AppController.Idle:
-                if (stackView.currentItem && stackView.currentItem.objectName !== "homeModePicker") {
+                if (stackView.currentItem && stackView.currentItem.objectName !== "homeModePicker"
+                    && stackView.currentItem.objectName !== "simpleWelcome") {
                     stackView.pop(null)
-                    stackView.push(homeModePicker)
+                    stackView.push(homeModeComponent)
                 }
                 break
             case AppController.ModeSelected:
-                if (stackView.currentItem && stackView.currentItem.objectName !== "modePicker") {
-                    // Stay on current page
-                }
                 break
             case AppController.Scanning:
                 if (!stackView.currentItem || stackView.currentItem.objectName !== "scanPage") {
-                    stackView.push(scanPageComponent)
+                    stackView.clear()
+                    stackView.push(scanPageComp)
                 }
                 break
             case AppController.ScanComplete:
                 if (appController.mode === AppController.Simple) {
-                    // Simple mode: auto-advance to processing
                     if (!stackView.currentItem || stackView.currentItem.objectName !== "processPage") {
-                        stackView.push(processPageComponent)
+                        stackView.push(processPageComp)
                     }
                 } else {
                     if (!stackView.currentItem || stackView.currentItem.objectName !== "selectPage") {
-                        stackView.push(selectPageComponent)
+                        stackView.push(selectPageComp)
                     }
                 }
                 break
             case AppController.Selecting:
                 if (!stackView.currentItem || stackView.currentItem.objectName !== "selectPage") {
-                    stackView.push(selectPageComponent)
+                    stackView.push(selectPageComp)
                 }
                 break
             case AppController.Processing:
                 if (!stackView.currentItem || stackView.currentItem.objectName !== "processPage") {
-                    stackView.push(processPageComponent)
+                    stackView.push(processPageComp)
                 }
                 break
             case AppController.Complete:
-                if (!stackView.currentItem || stackView.currentItem.objectName !== "reportPage") {
-                    stackView.push(reportPageComponent)
-                }
-                break
             case AppController.Error:
                 if (!stackView.currentItem || stackView.currentItem.objectName !== "reportPage") {
-                    stackView.push(reportPageComponent)
+                    stackView.push(reportPageComp)
                 }
                 break
         }
     }
 
-    // Home Mode Picker (initial page)
-    Component {
-        id: pagesComponent
-        HomeModePicker { id: homeModePicker; objectName: "homeModePicker" }
-    }
-
-    Component {
-        id: scanPageComponent
-        ScanPage { id: scanPage; objectName: "scanPage" }
-    }
-
-    Component {
-        id: selectPageComponent
-        SelectPage { id: selectPage; objectName: "selectPage" }
-    }
-
-    Component {
-        id: processPageComponent
-        ProcessPage { id: processPage; objectName: "processPage" }
-    }
-
-    Component {
-        id: reportPageComponent
-        ReportPage { id: reportPage; objectName: "reportPage" }
-    }
-
-    // Keyboard shortcuts
     Shortcut {
         sequence: "Escape"
         onActivated: {
@@ -186,5 +200,9 @@ ApplicationWindow {
                 stackView.pop()
             }
         }
+    }
+
+    SettingsDialog {
+        id: settingsDialog
     }
 }

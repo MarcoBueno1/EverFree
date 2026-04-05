@@ -58,12 +58,17 @@ enum class AppState {
 class AppController : public QObject {
     Q_OBJECT
 
+public:
+    enum class Mode { None = 0, Simple = 1, Advanced = 2 };
+    Q_ENUM(Mode)
+
     Q_PROPERTY(AppMode mode READ mode WRITE setMode NOTIFY modeChanged FINAL)
     Q_PROPERTY(AppState state READ state NOTIFY stateChanged FINAL)
     Q_PROPERTY(FileItemModel* fileModel READ fileModel CONSTANT FINAL)
     Q_PROPERTY(ScanReportModel* reportModel READ reportModel CONSTANT FINAL)
     Q_PROPERTY(ProgressModel* progressModel READ progressModel CONSTANT FINAL)
     Q_PROPERTY(QString simpleStatus READ simpleStatus NOTIFY simpleStatusChanged FINAL)
+    Q_PROPERTY(int defaultMode READ defaultMode WRITE setDefaultMode NOTIFY defaultModeChanged FINAL)
 
     // Advanced mode settings (persisted via QSettings)
     Q_PROPERTY(QStringList folderPaths READ folderPaths NOTIFY folderPathsChanged FINAL)
@@ -100,6 +105,10 @@ public:
     // Mode
     AppMode mode() const noexcept { return m_mode; }
     void setMode(AppMode mode);
+
+    // Default mode (persisted)
+    int defaultMode() const noexcept { return static_cast<int>(m_defaultMode); }
+    void setDefaultMode(int mode);
 
     // State
     AppState state() const noexcept { return m_state; }
@@ -224,6 +233,7 @@ signals:
     void restoreComplete(bool success);
 
     void modeChanged();
+    void defaultModeChanged();
     void stateChanged();
     void simpleStatusChanged();
     void folderPathsChanged();
@@ -266,8 +276,11 @@ private:
     void scanNextFolder();
     void saveSettings();
     void loadSettings();
+    void loadDefaultMode();
+    void saveDefaultMode();
 
     AppMode m_mode = AppMode::None;
+    AppMode m_defaultMode = AppMode::Simple;
     AppState m_state = AppState::Idle;
 
     FileItemModel* m_fileModel;

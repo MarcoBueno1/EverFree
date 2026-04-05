@@ -13,11 +13,11 @@ import EverFree 1.0
 Dialog {
     id: root
 
-    title: qsTr("⚙️ Configurações Avançadas")
+    title: qsTr("⚙️ Configurações")
     modal: true
     focus: true
     width: 500
-    height: 650
+    height: 700
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
 
@@ -26,6 +26,28 @@ Dialog {
     ColumnLayout {
         anchors.fill: parent
         spacing: 16
+
+        Label {
+            text: "🚀 Modo Padrão"
+            font.pixelSize: 16
+            font.bold: true
+            color: Material.color(Material.Green, Material.Shade300)
+        }
+
+        // Default mode selection
+        RowLayout {
+            spacing: 12
+            Label { text: "Modo de início:"; width: 140 }
+            ComboBox {
+                id: defaultModeCombo
+                Layout.fillWidth: true
+                model: ["Modo Simples", "Modo Avançado"]
+                property var values: [1, 2] // Simple=1, Advanced=2
+                Component.onCompleted: {
+                    currentIndex = appController.defaultMode === 2 ? 1 : 0
+                }
+            }
+        }
 
         Label {
             text: "🖼️ Imagens"
@@ -154,6 +176,8 @@ Dialog {
                 text: "Salvar"
                 highlighted: true
                 onClicked: {
+                    // Apply default mode
+                    appController.defaultMode = defaultModeCombo.values[defaultModeCombo.currentIndex]
                     // Apply settings to appController
                     appController.imageFormat = formatCombo.values[formatCombo.currentIndex]
                     appController.imageQuality = qualitySlider.value

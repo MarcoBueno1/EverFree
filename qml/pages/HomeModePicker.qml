@@ -11,13 +11,17 @@ Page {
     // Prevent back navigation from home
     StackView.onRemoved: destroy()
 
+    // Reference to components and stackView
+    property Component simpleWelcomeComp: null
+    property Component scanPageComp: null
+    property var stackViewRef: null
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
 
         Item { Layout.fillHeight: true }
 
-        // Title section
         ColumnLayout {
             Layout.alignment: Qt.AlignHCenter
             spacing: 8
@@ -50,7 +54,6 @@ Page {
 
         Item { Layout.fillHeight: true; Layout.preferredHeight: 20 }
 
-        // Two cards side by side
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
             Layout.leftMargin: 40
@@ -86,7 +89,6 @@ Page {
                     anchors.margins: 28
                     spacing: 16
 
-                    // Icon
                     Rectangle {
                         Layout.alignment: Qt.AlignHCenter
                         width: 80
@@ -135,7 +137,7 @@ Page {
                 }
             }
 
-            // Modo Avan\u00e7ado card
+            // Modo Avançado card
             Rectangle {
                 id: advancedCard
                 Layout.fillWidth: true
@@ -163,7 +165,6 @@ Page {
                     anchors.margins: 28
                     spacing: 16
 
-                    // Icon
                     Rectangle {
                         Layout.alignment: Qt.AlignHCenter
                         width: 80
@@ -218,10 +219,13 @@ Page {
 
     function selectSimpleMode() {
         appController.setMode(AppController.Simple)
-        appController.startSimpleMode()
+        if (stackViewRef) stackViewRef.push(simpleWelcomeComp)
+        else if (stackView) stackView.push(simpleWelcomeComp)
     }
 
     function selectAdvancedMode() {
         appController.setMode(AppController.Advanced)
+        if (stackViewRef) stackViewRef.push(scanPageComp)
+        else if (stackView) stackView.push(scanPageComp)
     }
 }

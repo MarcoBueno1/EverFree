@@ -7,50 +7,45 @@ import EverFree 1.0
 Page {
     id: root
     objectName: "simpleWelcome"
-    leftPadding: 40
-    rightPadding: 40
-    topPadding: 30
-    bottomPadding: 30
-
-    // Back button
-    header: ToolBar {
-        Material.background: "transparent"
-        Material.elevation: 0
-
-        Button {
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            text: qsTr("\u2190 Voltar")
-            flat: true
-            Material.foreground: Material.hintTextColor
-            font.pixelSize: 14
-            onClicked: {
-                appController.reset()
-                StackView.view.pop()
-            }
-        }
-    }
 
     ColumnLayout {
         anchors.fill: parent
+        anchors.margins: 40
         spacing: 0
 
-        Item { Layout.fillHeight: true; Layout.preferredHeight: 30 }
+        // Back button
+        RowLayout {
+            Layout.fillWidth: true
 
-        // Central card
+            Button {
+                text: qsTr("\u2190 Voltar")
+                flat: true
+                Material.foreground: Material.hintTextColor
+                font.pixelSize: 14
+                onClicked: {
+                    appController.reset()
+                    if (StackView.view) StackView.view.pop()
+                }
+            }
+
+            Item { Layout.fillWidth: true }
+        }
+
+        Item { Layout.preferredHeight: 20 }
+
+        // Main content card
         Rectangle {
             Layout.alignment: Qt.AlignHCenter
             Layout.preferredWidth: Math.min(560, root.width - 80)
             Layout.preferredHeight: 380
-            Material.background: Material.color(Material.Grey, Material.Shade800)
-            Material.elevation: 6
+            color: Material.color(Material.Grey, Material.Shade800)
+            radius: 12
 
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 36
                 spacing: 24
 
-                // Big icon
                 Label {
                     text: "\uD83D\uDCBB"
                     font.pixelSize: 72
@@ -61,7 +56,6 @@ Page {
                     text: qsTr("Vamos liberar espa\u00e7o do seu computador")
                     font.pixelSize: 22
                     font.bold: true
-                    font.weight: Font.Bold
                     color: Material.foreground
                     wrapMode: Text.WordWrap
                     horizontalAlignment: Text.AlignHCenter
@@ -79,20 +73,25 @@ Page {
 
                 Item { Layout.fillHeight: true }
 
-                // Giant green button
+                // Scan button
                 Button {
+                    id: scanButton
                     Layout.alignment: Qt.AlignHCenter
                     Layout.preferredWidth: 360
                     Layout.preferredHeight: 60
                     highlighted: true
+                    enabled: !scanning
                     Material.background: Material.color(Material.Green, Material.Shade700)
                     Material.foreground: Material.primaryTextColor
 
+                    property bool scanning: false
+
                     contentItem: Label {
-                        text: "\uD83D\uDD0D Escanear Meu Computador"
+                        text: scanButton.scanning
+                            ? "\u23F3 Escaneando..."
+                            : "\uD83D\uDD0D Escanear Meu Computador"
                         font.pixelSize: 20
                         font.bold: true
-                        font.weight: Font.Bold
                         color: parent.Material.foreground
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -100,18 +99,18 @@ Page {
 
                     background: Rectangle {
                         radius: 16
-                        color: parent.pressed
-                            ? Material.color(Material.Green, Material.Shade900)
-                            : parent.hovered
-                                ? Material.color(Material.Green, Material.Shade600)
-                                : Material.color(Material.Green, Material.Shade700)
-
-                        Behavior on color {
-                            ColorAnimation { duration: 150 }
-                        }
+                        color: scanButton.scanning
+                            ? Material.color(Material.Green, Material.Shade800)
+                            : parent.pressed
+                                ? Material.color(Material.Green, Material.Shade900)
+                                : parent.hovered
+                                    ? Material.color(Material.Green, Material.Shade600)
+                                    : Material.color(Material.Green, Material.Shade700)
+                        Behavior on color { ColorAnimation { duration: 150 } }
                     }
 
                     onClicked: {
+                        scanButton.scanning = true
                         appController.addDefaultUserFolders()
                         appController.startScan()
                     }

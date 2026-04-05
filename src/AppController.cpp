@@ -45,6 +45,7 @@ AppController::AppController(QObject* parent)
     , m_db(new EverFree::ProcessingDatabase(this))
 {
     loadSettings();
+    loadDefaultMode();
 
     // Initialize processing history database
     m_db->initialize();
@@ -88,6 +89,34 @@ void AppController::saveSettings()
     m_settings.setValue("threads", m_threads);
     m_settings.setValue("recursive", m_recursive);
     m_settings.sync();
+}
+
+// ── Default Mode Persistence ─────────────────────────────────────────────────
+
+void AppController::loadDefaultMode()
+{
+    int mode = m_settings.value("defaultMode", static_cast<int>(AppMode::Simple)).toInt();
+    if (mode == static_cast<int>(AppMode::Advanced)) {
+        m_defaultMode = AppMode::Advanced;
+    } else {
+        m_defaultMode = AppMode::Simple;
+    }
+}
+
+void AppController::saveDefaultMode()
+{
+    m_settings.setValue("defaultMode", static_cast<int>(m_defaultMode));
+    m_settings.sync();
+}
+
+void AppController::setDefaultMode(int mode)
+{
+    AppMode newMode = (mode == static_cast<int>(AppMode::Advanced)) ? AppMode::Advanced : AppMode::Simple;
+    if (m_defaultMode != newMode) {
+        m_defaultMode = newMode;
+        emit defaultModeChanged();
+        saveDefaultMode();
+    }
 }
 
 // ── Mode ──────────────────────────────────────────────────────────────────────
