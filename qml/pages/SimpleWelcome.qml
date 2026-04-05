@@ -80,16 +80,18 @@ Page {
                     Layout.preferredWidth: 360
                     Layout.preferredHeight: 60
                     highlighted: true
-                    enabled: !scanning
+                    enabled: appController.state !== AppController.Scanning
                     Material.background: Material.color(Material.Green, Material.Shade700)
                     Material.foreground: Material.primaryTextColor
 
-                    property bool scanning: false
+                    property bool scanning: appController.state === AppController.Scanning
 
                     contentItem: Label {
-                        text: scanButton.scanning
-                            ? "\u23F3 Escaneando..."
-                            : "\uD83D\uDD0D Escanear Meu Computador"
+                        text: {
+                            if (appController.state === AppController.Scanning) return "\u23F3 Escaneando..."
+                            if (appController.state === AppController.ScanComplete || appController.state === AppController.AwaitingConfirmation) return "\u2705 Escaneamento Conclu\u00eddo"
+                            return "\uD83D\uDD0D Escanear Meu Computador"
+                        }
                         font.pixelSize: 20
                         font.bold: true
                         color: parent.Material.foreground
@@ -99,20 +101,26 @@ Page {
 
                     background: Rectangle {
                         radius: 16
-                        color: scanButton.scanning
-                            ? Material.color(Material.Green, Material.Shade800)
-                            : parent.pressed
-                                ? Material.color(Material.Green, Material.Shade900)
-                                : parent.hovered
-                                    ? Material.color(Material.Green, Material.Shade600)
-                                    : Material.color(Material.Green, Material.Shade700)
+                        color: {
+                            if (!scanButton.enabled) return Material.color(Material.Green, Material.Shade800)
+                            if (parent.pressed) return Material.color(Material.Green, Material.Shade900)
+                            if (parent.hovered) return Material.color(Material.Green, Material.Shade600)
+                            return Material.color(Material.Green, Material.Shade700)
+                        }
                         Behavior on color { ColorAnimation { duration: 150 } }
                     }
 
                     onClicked: {
-                        scanButton.scanning = true
                         appController.addDefaultUserFolders()
                         appController.startScan()
+                    }
+                }
+
+                Connections {
+                    target: appController
+                    function onStateChanged() {
+                        // Force visual update based on state
+                        scanButton.enabled = appController.state !== AppController.Scanning
                     }
                 }
 

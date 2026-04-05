@@ -213,7 +213,11 @@ bool AppController::isVideoType(int) const { return false; }
 void AppController::startScan()
 {
     if (m_state == AppState::Scanning) return;
-    if (m_folderPaths.isEmpty()) return;
+    if (m_folderPaths.isEmpty()) {
+        m_simpleStatus = "⚠️ Nenhuma pasta configurada para escanear";
+        emit simpleStatusChanged();
+        return;
+    }
 
     clearErrors();
     m_mergedReport = batchpress::FileScanReport{};
@@ -357,7 +361,36 @@ void AppController::onScanFailed(const QString& error)
     }
 
     m_currentFolder++;
-    QMetaObject::invokeMethod(this, "scanNextFolder", Qt::QueuedConnection);
+
+    // Check if there are more folders to scan
+    if (m_currentFolder < m_totalFolders) {
+        QMetaObject::invokeMethod(this, "scanNextFolder", Qt::QueuedConnection);
+        return;
+    }
+
+    // All folders failed — finalize with error state
+    m_reportModel->loadReport(m_mergedReport);
+    m_fileModel->loadFiles(m_mergedReport.files);
+
+    if (m_mergedReport.files.empty()) {
+        m_simpleStatus = QString("❌ Falha ao escanear: %1").arg(error);
+        emit simpleStatusChanged();
+        setState(AppState::Error);
+    } else {
+        // Some folders succeeded, partial result
+        auto imgCount = m_mergedReport.image_count();
+        auto vidCount = m_mergedReport.video_count();
+        double pct = m_mergedReport.overall_savings_pct();
+        m_simpleStatus = QString("⚠️ Parcial: %1 imagens, %2 vídeos — economia: %3% (algumas pastas falharam)")
+                             .arg(imgCount).arg(vidCount).arg(pct, 0, 'f', 0);
+        emit simpleStatusChanged();
+        if (m_mode == AppMode::Simple) {
+            setState(AppState::AwaitingConfirmation);
+        } else {
+            setState(AppState::ScanComplete);
+        }
+    }
+    emit scanFinished();
 }
 
 // ── Processing (Chained Image → Video) ───────────────────────────────────────

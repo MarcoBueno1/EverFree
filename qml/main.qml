@@ -18,46 +18,6 @@ ApplicationWindow {
     Material.primary: Material.Green
     Material.accent: Material.Lime
 
-    // ---- Page Component definitions ----
-    Component {
-        id: homeModeComponent
-        HomeModePicker {
-            objectName: "homeModePicker"
-            simpleWelcomeComp: simpleWelcomeComp
-            scanPageComp: scanPageComp
-            stackViewRef: stackView
-        }
-    }
-
-    Component {
-        id: simpleWelcomeComp
-        SimpleWelcome {
-            objectName: "simpleWelcome"
-            scanPageComp: scanPageComp
-            stackViewRef: stackView
-        }
-    }
-
-    Component {
-        id: scanPageComp
-        ScanPage { objectName: "scanPage" }
-    }
-
-    Component {
-        id: selectPageComp
-        SelectPage { objectName: "selectPage" }
-    }
-
-    Component {
-        id: processPageComp
-        ProcessPage { objectName: "processPage" }
-    }
-
-    Component {
-        id: reportPageComp
-        ReportPage { objectName: "reportPage" }
-    }
-
     header: ToolBar {
         Material.background: Material.color(Material.Grey, Material.Shade800)
         Material.elevation: 4
@@ -70,7 +30,6 @@ ApplicationWindow {
                 text: "\uD83C\uDF3F EverFree"
                 font.pixelSize: 22
                 font.bold: true
-                font.weight: Font.Bold
                 color: Material.color(Material.Green, Material.Shade300)
                 Layout.leftMargin: 20
             }
@@ -102,7 +61,6 @@ ApplicationWindow {
     footer: Rectangle {
         color: Material.color(Material.Grey, Material.Shade900)
         height: 28
-
         Label {
             anchors.centerIn: parent
             text: appController.simpleStatus || qsTr("Pronto")
@@ -112,15 +70,43 @@ ApplicationWindow {
         }
     }
 
-    // StackView — starts with SimpleWelcome (default mode)
     StackView {
         id: stackView
         anchors.fill: parent
         anchors.bottomMargin: 0
-        initialItem: simpleWelcomeComp
+        initialItem: simpleWelcomePage
+
+        Component {
+            id: simpleWelcomePage
+            SimpleWelcome { objectName: "simpleWelcome" }
+        }
+
+        Component {
+            id: homeModePage
+            HomeModePicker { objectName: "homeModePicker" }
+        }
+
+        Component {
+            id: scanPage
+            ScanPage { objectName: "scanPage" }
+        }
+
+        Component {
+            id: selectPage
+            SelectPage { objectName: "selectPage" }
+        }
+
+        Component {
+            id: processPage
+            ProcessPage { objectName: "processPage" }
+        }
+
+        Component {
+            id: reportPage
+            ReportPage { objectName: "reportPage" }
+        }
     }
 
-    // On startup, check if we should show mode picker instead (advanced mode)
     Timer {
         id: startupTimer
         interval: 50
@@ -129,63 +115,50 @@ ApplicationWindow {
         onTriggered: {
             if (appController.defaultMode === 2) {
                 stackView.clear()
-                stackView.push(homeModeComponent)
+                stackView.push(homeModePage)
             }
         }
     }
 
-    // Navigation state controller
     Connections {
         target: appController
-
         function onStateChanged() {
             pushPageForState(appController.state)
         }
     }
 
     function pushPageForState(state) {
+        var current = stackView.currentItem ? stackView.currentItem.objectName : ""
+
         switch (state) {
             case AppController.Idle:
-                if (stackView.currentItem && stackView.currentItem.objectName !== "homeModePicker"
-                    && stackView.currentItem.objectName !== "simpleWelcome") {
+                if (current !== "homeModePicker" && current !== "simpleWelcome") {
                     stackView.pop(null)
-                    stackView.push(homeModeComponent)
+                    stackView.push(homeModePage)
                 }
                 break
-            case AppController.ModeSelected:
-                break
             case AppController.Scanning:
-                if (!stackView.currentItem || stackView.currentItem.objectName !== "scanPage") {
+                if (current !== "scanPage") {
                     stackView.clear()
-                    stackView.push(scanPageComp)
+                    stackView.push(scanPage)
                 }
                 break
             case AppController.ScanComplete:
                 if (appController.mode === AppController.Simple) {
-                    if (!stackView.currentItem || stackView.currentItem.objectName !== "processPage") {
-                        stackView.push(processPageComp)
-                    }
+                    if (current !== "processPage") stackView.push(processPage)
                 } else {
-                    if (!stackView.currentItem || stackView.currentItem.objectName !== "selectPage") {
-                        stackView.push(selectPageComp)
-                    }
+                    if (current !== "selectPage") stackView.push(selectPage)
                 }
                 break
             case AppController.Selecting:
-                if (!stackView.currentItem || stackView.currentItem.objectName !== "selectPage") {
-                    stackView.push(selectPageComp)
-                }
+                if (current !== "selectPage") stackView.push(selectPage)
                 break
             case AppController.Processing:
-                if (!stackView.currentItem || stackView.currentItem.objectName !== "processPage") {
-                    stackView.push(processPageComp)
-                }
+                if (current !== "processPage") stackView.push(processPage)
                 break
             case AppController.Complete:
             case AppController.Error:
-                if (!stackView.currentItem || stackView.currentItem.objectName !== "reportPage") {
-                    stackView.push(reportPageComp)
-                }
+                if (current !== "reportPage") stackView.push(reportPage)
                 break
         }
     }
@@ -193,8 +166,7 @@ ApplicationWindow {
     Shortcut {
         sequence: "Escape"
         onActivated: {
-            if (appController.state === AppController.Scanning ||
-                appController.state === AppController.Processing) {
+            if (appController.state === AppController.Scanning || appController.state === AppController.Processing) {
                 appController.cancel()
             } else if (stackView.depth > 1) {
                 stackView.pop()
@@ -202,7 +174,5 @@ ApplicationWindow {
         }
     }
 
-    SettingsDialog {
-        id: settingsDialog
-    }
+    SettingsDialog { id: settingsDialog }
 }
