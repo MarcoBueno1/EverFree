@@ -3,27 +3,35 @@
  * EverFree — main.cpp
  * FIX W-14: qputenv BEFORE QGuiApplication.
  * FIX C-09: qmlRegisterUncreatableType to prevent duplicate instances.
+ * FIX W-15: Use QApplication for better window management on Wayland.
  */
 
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QIcon>
 #include <QDir>
 #include <QDebug>
+#include <QTimer>
+#include <QQuickWindow>
 
 #include "AppController.hpp"
 #include "utils/ThemeManager.hpp"
 
 int main(int argc, char* argv[])
 {
-    // FIX W-14: MUST be before QGuiApplication construction
+    // FIX W-14: MUST be before QApplication construction
     qputenv("QT_QUICK_CONTROLS_STYLE", "Material");
+    
+    // FIX W-16: Force X11/XCB platform for reliable window management on Wayland
+    if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+        qputenv("QT_QPA_PLATFORM", "xcb");
+    }
 
-    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(
+    QApplication::setHighDpiScaleFactorRoundingPolicy(
         Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
     app.setApplicationName("EverFree");
     app.setApplicationVersion("1.0.0");
     app.setOrganizationName("EverFree");
@@ -49,10 +57,41 @@ int main(int argc, char* argv[])
     engine.rootContext()->setContextProperty("themeManager", &theme);
 
     const QUrl url(QStringLiteral("qrc:/qt/qml/EverFree/qml/main.qml"));
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,
-        &app, []() { qCritical() << "Failed to load QML"; qApp->exit(-1); },
-        Qt::QueuedConnection);
+    
+    qDebug() << "[EverFree] Loading QML from:" << url;
+    
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
+        &app, [](QObject *obj, const QUrl &url) {
+            if (obj == nullptr) {
+                qCritical() << "[EverFree] Failed to load QML:" << url;
+                qApp->exit(-1);
+            } else {
+                qDebug() << "[EverFree] QML loaded successfully:" << url;
+            }
+        }, Qt::QueuedConnection);
+    
+    QObject::connect(&app, &QApplication::lastWindowClosed,
+        &app, []() { qDebug() << "[EverFree] Last window closed, exiting..."; });
+    QObject::connect(&app, &QApplication::aboutToQuit,
+        &app, []() { qDebug() << "[EverFree] Application about to quit..."; });
 
     engine.load(url);
-    return app.exec();
+    
+    // FIX W-17: Force QQuickWindow to appear after QML is loaded
+    QTimer::singleShot(500, [&app]() {
+        QQuickWindow *window = qobject_cast<QQuickWindow*>(qApp->topLevelWindows().first());
+        if (window) {
+            qDebug() << "[EverFree] Found QQuickWindow, raising...";
+            window->raise();
+            window->requestActivate();
+            window->show();
+        } else {
+            qDebug() << "[EverFree] No QQuickWindow found at 500ms";
+            qDebug() << "[EverFree] Top level widgets:" << qApp->topLevelWidgets();
+        }
+    });
+    
+    int result = app.exec();
+    qDebug() << "[EverFree] Application exited with code:" << result;
+    return result;
 }

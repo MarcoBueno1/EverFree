@@ -285,8 +285,6 @@ void AppController::scanNextFolder()
     emit simpleStatusChanged();
 
     m_scanWorker = new ScanWorker(folder, m_recursive, 5, this);
-    // Low priority so it doesn't compete with UI
-    m_scanWorker->setPriority(QThread::LowPriority);
 
     connect(m_scanWorker, &ScanWorker::progressUpdated,
             this, &AppController::onScanProgress);
@@ -295,7 +293,9 @@ void AppController::scanNextFolder()
     connect(m_scanWorker, &ScanWorker::scanFailed,
             this, &AppController::onScanFailed);
 
+    // FIX: Start thread BEFORE setting priority
     m_scanWorker->start();
+    m_scanWorker->setPriority(QThread::LowPriority);
 }
 
 void AppController::onScanProgress(const QString& file, int done, int total)
