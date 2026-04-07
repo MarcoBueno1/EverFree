@@ -21,7 +21,16 @@ void FileItemModel::loadFiles(const std::vector<batchpress::FileItem>& files)
     beginResetModel();
     m_sourceFiles = files;
     m_filteredItems.clear();
-    rebuildFilter();
+    // Don't call rebuildFilter here since it will call beginResetModel again
+    int sourceIdx = 0;
+    for (const auto& f : m_sourceFiles) {
+        DisplayItem di;
+        di.file = f;
+        di.selected = true;
+        di.sourceIndex = sourceIdx;
+        m_filteredItems.append(di);
+        sourceIdx++;
+    }
     endResetModel();
     emit selectedCountChanged();
 }

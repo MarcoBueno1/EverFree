@@ -16,6 +16,9 @@ Page {
     property Component scanPageComp: null
     property var stackViewRef: null
 
+    // Save default mode preference
+    property bool saveDefaultMode: false
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
@@ -215,16 +218,59 @@ Page {
         }
 
         Item { Layout.fillHeight: true }
+
+        // Bottom action bar: save default mode + close
+        Rectangle {
+            Layout.fillWidth: true
+            height: 60
+            Material.background: Material.color(Material.Grey, Material.Shade900)
+            border.color: Material.color(Material.Grey, Material.Shade800)
+            border.width: 1
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 32
+                anchors.rightMargin: 32
+                spacing: 16
+
+                CheckBox {
+                    id: saveDefaultCheck
+                    text: qsTr("Salvar como modo padr\u00e3o")
+                    checked: root.saveDefaultMode
+                    onCheckedChanged: root.saveDefaultMode = checked
+                    Material.foreground: Material.foreground
+                    font.pixelSize: 14
+                }
+
+                Item { Layout.fillWidth: true }
+
+                Button {
+                    text: qsTr("\u2715 Sair")
+                    flat: true
+                    Material.foreground: Material.hintTextColor
+                    font.pixelSize: 14
+                    onClicked: Qt.quit()
+                }
+            }
+        }
     }
 
     function selectSimpleMode() {
         appController.setMode(AppController.Simple)
+        if (saveDefaultMode) {
+            appController.defaultMode = AppController.Simple
+            appController.saveDefaultMode()
+        }
         if (stackViewRef) stackViewRef.push(simpleWelcomeComp)
         else if (stackView) stackView.push(simpleWelcomeComp)
     }
 
     function selectAdvancedMode() {
         appController.setMode(AppController.Advanced)
+        if (saveDefaultMode) {
+            appController.defaultMode = AppController.Advanced
+            appController.saveDefaultMode()
+        }
         if (stackViewRef) stackViewRef.push(scanPageComp)
         else if (stackView) stackView.push(scanPageComp)
     }

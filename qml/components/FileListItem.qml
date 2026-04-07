@@ -8,17 +8,30 @@ Item {
     height: visible ? 52 : 0
     visible: matchesFilter
 
-    property alias fileName: nameLabel.text
-    property alias fileSize: sizeLabel.text
-    property alias projectedSize: projectedLabel.text
-    property alias isImage: typeIcon.isImage
-    property alias savingsPct: savingsLabel.value
-    property alias qualityStars: starsLabel.text
-    property alias isSelected: itemCheck.checked
-    property bool isVideo: false
+    // Roles from FileItemModel - using direct model role binding
+    property string filePath: model.filePath !== undefined ? model.filePath : ""
+    property string fileName: model.fileName !== undefined ? model.fileName : ""
+    property var fileSizeRaw: model.fileSize !== undefined ? model.fileSize : 0
+    property var projectedSizeRaw: model.projectedSize !== undefined ? model.projectedSize : 0
+    property bool isImage: model.isImage !== undefined ? model.isImage : false
+    property bool isVideo: model.isVideo !== undefined ? model.isVideo : false
+    property real savingsPct: model.savingsPct !== undefined ? model.savingsPct : 0
+    property string qualityStars: model.qualityStars !== undefined ? model.qualityStars : ""
+    property string suggestedCodec: model.suggestedCodec !== undefined ? model.suggestedCodec : ""
+    property int fileWidth: model.width !== undefined ? model.width : 0
+    property int fileHeight: model.height !== undefined ? model.height : 0
+    property int projWidth: model.projectedWidth !== undefined ? model.projectedWidth : 0
+    property int projHeight: model.projectedHeight !== undefined ? model.projectedHeight : 0
+    property var durationSec: model.durationSec !== undefined ? model.durationSec : 0
+    property bool isSelected: model.isSelected !== undefined ? model.isSelected : true
+    
     property string filterText: ""
     property int filterType: 0 // 0=All, 1=Images, 2=Videos
     property bool hovered: false
+
+    // Computed properties
+    property string fileSize: formatFileSize(fileSizeRaw)
+    property string projectedSize: formatFileSize(projectedSizeRaw)
 
     // Filter matching logic
     property bool matchesFilter: {
@@ -26,18 +39,20 @@ Item {
             (filterType === 1 && isImage) ||
             (filterType === 2 && isVideo)
         var nameMatch = filterText === "" ||
-            nameLabel.text.toLowerCase().indexOf(filterText.toLowerCase()) >= 0
+            fileName.toLowerCase().indexOf(filterText.toLowerCase()) >= 0
         return typeMatch && nameMatch
     }
 
-    // Roles from FileItemModel
-    property string filePath: ""
-    property string suggestedCodec: ""
-    property int fileWidth: 0
-    property int fileHeight: 0
-    property string durationSec: ""
-    property int projWidth: 0
-    property int projHeight: 0
+    // Helper function to format file size
+    function formatFileSize(bytes) {
+        if (bytes === undefined || bytes === null) return ""
+        bytes = Number(bytes)
+        if (bytes === 0) return "0 B"
+        var k = 1024
+        var sizes = ["B", "KB", "MB", "GB"]
+        var i = Math.floor(Math.log(bytes) / Math.log(k))
+        return (bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0) + " " + sizes[i]
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -69,14 +84,14 @@ Item {
         // Checkbox
         CheckBox {
             id: itemCheck
-            checked: true
+            checked: root.isSelected
             Material.foreground: Material.color(Material.Green, Material.Shade300)
         }
 
         // Type icon
         Label {
             id: typeIcon
-            property bool isImage: true
+            property bool isImage: root.isImage
             text: isImage ? "\uD83D\uDDBC\uFE0F" : "\uD83C\uDFAC"
             font.pixelSize: 18
         }
@@ -88,7 +103,7 @@ Item {
 
             Label {
                 id: nameLabel
-                text: fileName
+                text: root.fileName
                 font.pixelSize: 13
                 color: Material.foreground
                 elide: Text.ElideMiddle
@@ -102,7 +117,7 @@ Item {
                     var parts = []
                     if (root.fileWidth > 0 && root.fileHeight > 0)
                         parts.push("%1\u00d7%2".arg(root.fileWidth).arg(root.fileHeight))
-                    if (root.durationSec !== "" && root.durationSec !== "0")
+                    if (root.durationSec !== 0 && root.durationSec !== "0")
                         parts.push(root.durationSec)
                     if (root.suggestedCodec !== "")
                         parts.push(root.suggestedCodec)
@@ -126,7 +141,7 @@ Item {
 
                 Label {
                     id: sizeLabel
-                    text: fileSize
+                    text: root.fileSize
                     font.pixelSize: 12
                     color: Material.hintTextColor
                 }
@@ -139,7 +154,7 @@ Item {
 
                 Label {
                     id: projectedLabel
-                    text: projectedSize
+                    text: root.projectedSize
                     font.pixelSize: 12
                     font.bold: true
                     color: Material.color(Material.Green, Material.Shade300)
@@ -150,7 +165,7 @@ Item {
         // Savings percentage
         Label {
             id: savingsLabel
-            property real value: 0
+            property real value: root.savingsPct
             text: value > 0 ? "-%1%".arg(Math.round(value)) : ""
             font.pixelSize: 12
             font.bold: true
@@ -162,7 +177,7 @@ Item {
         // Quality stars
         Label {
             id: starsLabel
-            text: qualityStars
+            text: root.qualityStars
             font.pixelSize: 12
             color: Material.color(Material.Yellow, Material.Shade300)
             Layout.minimumWidth: 50

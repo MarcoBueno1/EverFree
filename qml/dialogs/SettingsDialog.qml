@@ -17,15 +17,53 @@ Dialog {
     modal: true
     focus: true
     width: 500
-    height: 700
+    height: 650
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
 
     Material.primary: Material.Green
 
-    ColumnLayout {
+    footer: DialogButtonBox {
+        Button {
+            text: "Cancelar"
+            DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+            onClicked: root.close()
+        }
+
+        Button {
+            text: "Salvar"
+            highlighted: true
+            DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
+            onClicked: {
+                // Apply default mode
+                appController.defaultMode = defaultModeCombo.values[defaultModeCombo.currentIndex]
+                // Apply settings to appController
+                appController.imageFormat = formatCombo.values[formatCombo.currentIndex]
+                appController.imageQuality = qualitySlider.value
+                appController.resizeSpec = resizeField.text
+                appController.vcodec = codecCombo.values[codecCombo.currentIndex]
+                appController.crf = crfSlider.value
+                appController.maxRes = resCombo.values[resCombo.currentIndex]
+                appController.threads = threadBox.value
+                root.close()
+            }
+        }
+    }
+
+    // Scrollable content
+    Flickable {
+        id: settingsFlickable
         anchors.fill: parent
-        spacing: 16
+        contentHeight: 700
+        clip: true
+        interactive: contentHeight > height
+
+        ScrollIndicator.vertical: ScrollIndicator {}
+
+        ColumnLayout {
+            id: settingsColumn
+            width: settingsFlickable.width
+            spacing: 14
 
         Label {
             text: "🚀 Modo Padrão"
@@ -158,37 +196,6 @@ Dialog {
             }
             Label { text: "(0 = automático)"; color: Material.hintTextColor }
         }
-
-        Item { Layout.fillHeight: true }
-
-        // Buttons
-        RowLayout {
-            spacing: 12
-            Layout.alignment: Qt.AlignRight
-
-            Button {
-                text: "Cancelar"
-                flat: true
-                onClicked: root.close()
-            }
-
-            Button {
-                text: "Salvar"
-                highlighted: true
-                onClicked: {
-                    // Apply default mode
-                    appController.defaultMode = defaultModeCombo.values[defaultModeCombo.currentIndex]
-                    // Apply settings to appController
-                    appController.imageFormat = formatCombo.values[formatCombo.currentIndex]
-                    appController.imageQuality = qualitySlider.value
-                    appController.resizeSpec = resizeField.text
-                    appController.vcodec = codecCombo.values[codecCombo.currentIndex]
-                    appController.crf = crfSlider.value
-                    appController.maxRes = resCombo.values[resCombo.currentIndex]
-                    appController.threads = threadBox.value
-                    root.close()
-                }
-            }
-        }
-    }
-}
+        } // ColumnLayout
+    } // Flickable
+} // Dialog

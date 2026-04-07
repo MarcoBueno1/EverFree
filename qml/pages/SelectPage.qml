@@ -9,7 +9,7 @@ Page {
     objectName: "selectPage"
     leftPadding: 24
     rightPadding: 24
-    topPadding: 16
+    topPadding: 20
     bottomPadding: 24
 
     // Filter state
@@ -17,62 +17,74 @@ Page {
     property int filterType: 0 // 0=All, 1=Images, 2=Videos
     property int selectedCount: 0
 
-    header: ToolBar {
-        Material.background: "transparent"
-        Material.elevation: 0
-
-        Button {
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            text: qsTr("\u2190 Voltar")
-            flat: true
-            Material.foreground: Material.hintTextColor
-            font.pixelSize: 14
-            onClicked: {
-                appController.reset()
-                StackView.view.pop()
-            }
-        }
+    // Helper function to format bytes
+    function formatBytes(bytes) {
+        if (bytes === 0) return "0 B"
+        if (bytes < 1024) return bytes + " B"
+        var k = 1024
+        var sizes = ["KB", "MB", "GB", "TB"]
+        var i = Math.floor(Math.log(bytes) / Math.log(k))
+        return (bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0) + " " + sizes[i]
     }
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 16
+        spacing: 12
 
         // Summary header
-        Rectangle {
+        Item {
             Layout.fillWidth: true
-            Material.background: Material.color(Material.Green, Material.Shade900)
-            Material.elevation: 2
+            implicitHeight: summaryContent.height + 24
 
-            RowLayout {
+            Rectangle {
+                id: summaryCard
                 anchors.fill: parent
-                anchors.margins: 16
-                spacing: 16
+                radius: 10
+                Material.background: Material.color(Material.Green, Material.Shade900)
+                Material.elevation: 2
 
-                Label {
-                    text: "\uD83D\uDCCB"
-                    font.pixelSize: 24
-                }
-
-                ColumnLayout {
-                    spacing: 2
+                RowLayout {
+                    id: summaryContent
+                    anchors.fill: parent
+                    anchors.margins: 16
+                    spacing: 12
 
                     Label {
-                        text: qsTr("%1 arquivos \u2014 %2 economia estimada")
-                            .arg(appController.fileModel.rowCount())
-                            .arg(reportModel.totalSavings)
-                        font.pixelSize: 16
-                        font.bold: true
-                        color: Material.color(Material.Green, Material.Shade200)
+                        text: "\uD83D\uDCCB"
+                        font.pixelSize: 24
+                        Layout.alignment: Qt.AlignTop
                     }
 
-                    Label {
-                        text: "%1 \u2192 %2"
-                            .arg(reportModel.totalSize)
-                            .arg(reportModel.totalProjectedSize)
-                        font.pixelSize: 12
-                        color: Material.color(Material.Green, Material.Shade400)
+                    ColumnLayout {
+                        spacing: 4
+                        Layout.fillWidth: true
+
+                        Label {
+                            text: qsTr("%1 arquivos").arg(appController.fileModel.rowCount())
+                            font.pixelSize: 15
+                            font.bold: true
+                            color: Material.color(Material.Green, Material.Shade200)
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Economia estimada: %1").arg(formatBytes(appController.reportModel.totalSavings))
+                            font.pixelSize: 14
+                            color: Material.color(Material.Green, Material.Shade300)
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: "%1 \u2192 %2"
+                                .arg(formatBytes(appController.reportModel.totalSize))
+                                .arg(formatBytes(appController.reportModel.totalProjectedSize))
+                            font.pixelSize: 12
+                            color: Material.color(Material.Green, Material.Shade400)
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                        }
                     }
                 }
             }
@@ -182,6 +194,16 @@ Page {
         // Action buttons
         RowLayout {
             spacing: 12
+
+            Button {
+                text: qsTr("\u2190 Voltar")
+                flat: true
+                Material.foreground: Material.hintTextColor
+                onClicked: {
+                    appController.reset()
+                    StackView.view.pop()
+                }
+            }
 
             Button {
                 text: qsTr("Selecionar Todos")

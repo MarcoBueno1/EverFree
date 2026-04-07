@@ -32,20 +32,6 @@
 #include "cloud/LicenseManager.hpp"
 #include "db/ProcessingDatabase.hpp"
 
-enum class AppMode { None, Simple, Advanced };
-
-enum class AppState {
-    Idle,
-    ModeSelected,
-    Scanning,
-    ScanComplete,
-    AwaitingConfirmation, // ← New: user sees preview before committing
-    Selecting,
-    Processing,
-    Complete,
-    Error
-};
-
 /**
  * @brief Main controller — zero blocking calls on the UI thread.
  *
@@ -59,6 +45,25 @@ class AppController : public QObject {
     Q_OBJECT
 
 public:
+    // AppMode and AppState are nested so Q_ENUM exposes them to QML
+    // via AppController.Simple, AppController.Scanning, etc.
+    enum class AppMode { None, Simple, Advanced };
+    Q_ENUM(AppMode)
+
+    enum class AppState {
+        Idle,
+        ModeSelected,
+        Scanning,
+        ScanComplete,
+        AwaitingConfirmation,
+        Selecting,
+        Processing,
+        Complete,
+        Error
+    };
+    Q_ENUM(AppState)
+
+    // Legacy alias kept for internal code that used the old free-standing Mode enum
     enum class Mode { None = 0, Simple = 1, Advanced = 2 };
     Q_ENUM(Mode)
 
@@ -273,7 +278,7 @@ private:
     void setState(AppState s);
     void addErrorPath(const QString& path);
     void startVideoProcessing();
-    void scanNextFolder();
+    Q_INVOKABLE void scanNextFolder();
     void saveSettings();
     void loadSettings();
     void loadDefaultMode();
