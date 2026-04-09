@@ -13,6 +13,7 @@ Page {
 
     // Reference to components and stackView
     property Component simpleWelcomeComp: null
+    property Component advancedWelcomeComp: null
     property Component scanPageComp: null
     property var stackViewRef: null
 
@@ -271,7 +272,8 @@ Page {
             appController.defaultMode = AppController.Advanced
             appController.saveDefaultMode()
         }
-        if (stackViewRef) stackViewRef.push(scanPageComp)
-        else if (stackView) stackView.push(scanPageComp)
+        // FIX: Navigate to AdvancedWelcome (not ScanPage) so user can select folders
+        if (stackViewRef) stackViewRef.push(advancedWelcomeComp)
+        else if (stackView) stackView.push(advancedWelcomeComp)
     }
 }

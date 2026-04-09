@@ -12,6 +12,8 @@ Page {
     topPadding: 20
     bottomPadding: 30
 
+    property var stackViewRef: null
+
     property bool processingComplete: false
     property int successCount: 0
     property int failCount: 0
@@ -309,21 +311,30 @@ Page {
                 spacing: 16
 
                 Button {
-                    text: "← Voltar ao Início"
+                    text: "\u2190 Voltar ao In\u00edcio"
                     flat: true
                     Material.foreground: Material.hintTextColor
                     onClicked: {
-                        appController.cancel()
+                        appController.reset()
+                        if (root.stackViewRef) {
+                            root.stackViewRef.pop(null)
+                        }
                     }
                 }
 
                 Button {
-                    text: "📋 Ver Relatório"
+                    text: "\uD83D\uDCCB Ver Relat\u00f3rio"
                     highlighted: true
                     Material.background: Material.color(Material.Green, Material.Shade600)
                     Material.foreground: Material.primaryTextColor
                     font.pixelSize: 15; font.bold: true
-                    onClicked: { /* navigate to report */ }
+                    onClicked: {
+                        // Navigate to report via appController state change instead of pushing duplicate
+                        if (root.stackViewRef) {
+                            root.stackViewRef.pop(null)  // Pop this ProcessPage first
+                            root.stackViewRef.push(reportPageComp)
+                        }
+                    }
                 }
             }
         }
@@ -336,13 +347,22 @@ Page {
             if (appController.state === AppController.Complete) {
                 processingComplete = true
                 successCount = progressModel.done
+                failCount = Math.max(0, progressModel.total - progressModel.done)
             } else if (appController.state === AppController.Error) {
                 processingComplete = true
-                failCount = Math.max(failCount, 1)
+                failCount = Math.max(failCount, progressModel.total - progressModel.done + 1)
+                successCount = progressModel.done
             }
         }
         function onProcessFinished() {
             processingComplete = true
+            successCount = progressModel.done
+            failCount = Math.max(0, progressModel.total - progressModel.done)
         }
+    }
+
+    Component {
+        id: reportPageComp
+        ReportPage { objectName: "reportPage" }
     }
 }

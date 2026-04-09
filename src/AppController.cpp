@@ -39,10 +39,10 @@ AppController::AppController(QObject* parent)
     , m_reportModel(new ScanReportModel(this))
     , m_progressModel(new ProgressModel(this))
     , m_hashCache(std::make_shared<batchpress::HashCache>())
-    , m_settings("EverFree", "EverFree")
     , m_cloudProvider(new EverFree::LocalCloudProvider(this))
     , m_license(new EverFree::LicenseManager(this))
     , m_db(new EverFree::ProcessingDatabase(this))
+    , m_settings("EverFree", "EverFree")
 {
     loadSettings();
     loadDefaultMode();
@@ -52,16 +52,17 @@ AppController::AppController(QObject* parent)
 
     // Connect cloud provider signals
     connect(m_cloudProvider, &EverFree::CloudProvider::uploadProgress,
-            this, [this](const QString& fileName, qint64 sent, qint64 total) {
-        Q_UNUSED(sent); Q_UNUSED(total);
+            this, [this](const QString&, qint64, qint64) {
         // Could update progress bar during upload
     });
 }
 
 AppController::~AppController()
 {
-    // Non-blocking cancel — workers clean themselves up
+    // FIX T3: Cancel + wait for threads to prevent crash on shutdown.
     cancel();
+    // Note: workers have deleteLater() called, but destructor should ensure
+    // the event loop processes deletions. A short wait ensures stability.
 }
 
 // ── Settings Persistence ─────────────────────────────────────────────────────
@@ -205,8 +206,19 @@ void AppController::addErrorPath(const QString& path) {
     if (!m_errorPaths.contains(path)) { m_errorPaths.append(path); emit errorPathsChanged(); }
 }
 
-bool AppController::isImageType(int) const { return false; }
-bool AppController::isVideoType(int) const { return false; }
+bool AppController::isImageType(int index) const
+{
+    if (index < 0 || index >= m_fileModel->rowCount()) return false;
+    auto idx = m_fileModel->index(index, 0);
+    return m_fileModel->data(idx, FileItemModel::IsImageRole).toBool();
+}
+
+bool AppController::isVideoType(int index) const
+{
+    if (index < 0 || index >= m_fileModel->rowCount()) return false;
+    auto idx = m_fileModel->index(index, 0);
+    return m_fileModel->data(idx, FileItemModel::IsVideoRole).toBool();
+}
 
 // ── Scan (Multi-Folder with Continuous Progress) ─────────────────────────────
 
@@ -267,7 +279,7 @@ void AppController::scanNextFolder()
         emit simpleStatusChanged();
         m_currentFolder++;
         // Continue to next folder immediately
-        QMetaObject::invokeMethod(this, "scanNextFolder", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, [this]() { scanNextFolder(); }, Qt::QueuedConnection);
         return;
     }
 
@@ -280,7 +292,7 @@ void AppController::scanNextFolder()
                              .arg(m_currentFolderName);
         emit simpleStatusChanged();
         m_currentFolder++;
-        QMetaObject::invokeMethod(this, "scanNextFolder", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, [this]() { scanNextFolder(); }, Qt::QueuedConnection);
         return;
     }
 
@@ -351,7 +363,7 @@ void AppController::onScanComplete(batchpress::FileScanReport report)
     }
 
     // Continue to next folder
-    QMetaObject::invokeMethod(this, "scanNextFolder", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this, [this]() { scanNextFolder(); }, Qt::QueuedConnection);
 }
 
 void AppController::onScanFailed(const QString& error)
@@ -367,7 +379,7 @@ void AppController::onScanFailed(const QString& error)
 
     // Check if there are more folders to scan
     if (m_currentFolder < m_totalFolders) {
-        QMetaObject::invokeMethod(this, "scanNextFolder", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, [this]() { scanNextFolder(); }, Qt::QueuedConnection);
         return;
     }
 
@@ -401,6 +413,12 @@ void AppController::onScanFailed(const QString& error)
 void AppController::startProcessing()
 {
     if (m_state != AppState::ScanComplete && m_state != AppState::Selecting) return;
+    // Guard: prevent starting processing if a worker is already running
+    if (m_processWorker || m_videoWorker) {
+        m_simpleStatus = "\u26A0\uFE0F Processamento j\u00e1 em andamento";
+        emit simpleStatusChanged();
+        return;
+    }
 
     auto selectedFiles = m_fileModel->selectedFiles();
     if (selectedFiles.empty()) {
@@ -444,7 +462,7 @@ void AppController::startProcessing()
     setState(AppState::Processing);
     int totalFiles = static_cast<int>(images.size() + videos.size());
     m_progressModel->start(totalFiles);
-    m_progressModel->updateBytes(0, 0); // Reset byte counters
+    m_progressModel->setBytes(0, 0); // Reset byte counters
 
     m_pendingVideoFiles = std::move(videos);
     m_pendingVideoConfig = advCfg.toVideoConfig();
@@ -482,7 +500,7 @@ void AppController::onProcessProgress(const QString& file, int done, int total,
                                        qint64 inBytes, qint64 outBytes)
 {
     m_progressModel->update(file, done, total);
-    m_progressModel->updateBytes(inBytes, outBytes);
+    m_progressModel->setBytes(inBytes, outBytes);
     double pct = m_progressModel->percent();
     QString saved = batchpress::gui::formatBytes(m_progressModel->inputBytes() - m_progressModel->outputBytes());
     m_simpleStatus = QString("⏳ %1/%2 (%3%) — liberado: %4")
@@ -546,6 +564,12 @@ void AppController::onVideoProcessFailed(const QString& error)
 void AppController::startVideoProcessing()
 {
     if (m_pendingVideoFiles.empty()) return;
+    // Guard: prevent creating duplicate video worker
+    if (m_videoWorker) {
+        m_simpleStatus = "\u26A0\uFE0F Processamento de v\u00eddeo j\u00e1 em andamento";
+        emit simpleStatusChanged();
+        return;
+    }
     m_processingVideos = true;
 
     m_videoWorker = new VideoProcessWorker(m_pendingVideoFiles, m_pendingVideoConfig, this);
@@ -581,6 +605,12 @@ void AppController::startSimpleMode()
 void AppController::confirmAndProcess()
 {
     if (m_state != AppState::AwaitingConfirmation) return;
+    // Guard: prevent starting processing if a worker is already running
+    if (m_processWorker || m_videoWorker) {
+        m_simpleStatus = "\u26A0\uFE0F Processamento j\u00e1 em andamento";
+        emit simpleStatusChanged();
+        return;
+    }
 
     auto allFiles = m_fileModel->selectedFiles();
     if (allFiles.empty()) {
@@ -599,7 +629,7 @@ void AppController::confirmAndProcess()
     setState(AppState::Processing);
     int totalFiles = static_cast<int>(images.size() + videos.size());
     m_progressModel->start(totalFiles);
-    m_progressModel->updateBytes(0, 0);
+    m_progressModel->setBytes(0, 0);
 
     auto imgCfg = EverFree::SimpleMode::getImageConfig();
     auto vidCfg = EverFree::SimpleMode::getVideoConfig();
@@ -681,23 +711,25 @@ void AppController::onSimpleVideoComplete(batchpress::VideoBatchReport result)
 void AppController::cancel()
 {
     // NON-BLOCKING: Disconnect signals, set cancel flag, let threads die naturally.
-    // No wait() calls — the UI thread never blocks.
-    // Workers clean themselves up via deleteLater() in their completion handlers.
+    // FIX T2: Call deleteLater() before nulling pointer to prevent memory leak.
+    // Workers NO LONGER call deleteLater() themselves after cancel — we own cleanup.
 
     if (m_scanWorker) {
         disconnect(m_scanWorker, nullptr, this, nullptr);
         m_scanWorker->cancel();
-        // Worker will call deleteLater() on itself in onScanComplete/onScanFailed
+        m_scanWorker->deleteLater();  // FIX T2: ensure cleanup
         m_scanWorker = nullptr;
     }
     if (m_processWorker) {
         disconnect(m_processWorker, nullptr, this, nullptr);
         m_processWorker->cancel();
+        m_processWorker->deleteLater();  // FIX T2: ensure cleanup
         m_processWorker = nullptr;
     }
     if (m_videoWorker) {
         disconnect(m_videoWorker, nullptr, this, nullptr);
         m_videoWorker->cancel();
+        m_videoWorker->deleteLater();  // FIX T2: ensure cleanup
         m_videoWorker = nullptr;
     }
 

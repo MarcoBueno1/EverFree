@@ -73,11 +73,10 @@ Page {
                     CheckBox {
                         id: recursiveCheck
                         text: qsTr("Busca recursiva")
-                        checked: false
+                        checked: appController.recursive
                         Material.foreground: Material.hintTextColor
                         font.pixelSize: 13
-                        // Note: recursive property needs to exist on AppController
-                        // onCheckedChanged: appController.recursive = checked
+                        onCheckedChanged: appController.recursive = checked
                     }
                 }
 

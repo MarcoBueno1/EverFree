@@ -60,6 +60,15 @@ Item {
         return (bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0) + " " + sizes[i]
     }
 
+    function toggleSelection() {
+        var newSelected = !root.isSelected
+        var idx = index !== undefined ? index : -1
+        if (idx >= 0 && ListView.view && ListView.view.model) {
+            var modelIdx = ListView.view.model.index(idx, 0)
+            ListView.view.model.setData(modelIdx, newSelected, FileItemModel.IsSelectedRole)
+        }
+    }
+
     // Fundo com hover
     Rectangle {
         anchors.fill: parent
@@ -80,7 +89,7 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onEntered: root.hovered = true
         onExited: root.hovered = false
-        onClicked: itemCheck.toggle()
+        onClicked: root.toggleSelection()
     }
 
     RowLayout {

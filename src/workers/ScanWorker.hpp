@@ -1,44 +1,38 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018 Marco Antônio Bueno da Silva <bueno.marco@gmail.com>
- *
- * This file is part of batchpress — Qt6 Desktop GUI scan worker.
+ * EverFree — ScanWorker with thread-safe cancellation.
+ * FIX: Uses shared_ptr<atomic<bool>> to prevent use-after-free in callbacks.
  */
 
 #pragma once
 
 #include <QThread>
 #include <QString>
-#include <batchpress/scanner.hpp>
-#include <batchpress/types.hpp>
 #include <atomic>
+#include <memory>
 
-/**
- * @brief Runs scan_files() on a background QThread.
- *
- * Emits signals thread-safely via Qt::QueuedConnection.
- * Supports cooperative cancellation.
- */
+#include <batchpress/scanner.hpp>
+
 class ScanWorker : public QThread {
     Q_OBJECT
 
 public:
-    explicit ScanWorker(const QString& rootDir, bool recursive = true,
-                        uint32_t samplesPerDir = 5, QObject* parent = nullptr);
+    explicit ScanWorker(const QString& rootDir, bool recursive, uint32_t samplesPerDir, QObject* parent = nullptr);
 
-    void cancel() noexcept { m_cancelled = true; }
+    void cancel() { m_cancelled->store(true); }
+
+signals:
+    void progressUpdated(const QString& file, int done, int total);
+    void scanComplete(batchpress::FileScanReport report);
+    void scanFailed(const QString& error);
 
 protected:
     void run() override;
-
-signals:
-    void progressUpdated(const QString& filename, int done, int total);
-    void scanComplete(batchpress::FileScanReport report);
-    void scanFailed(const QString& error);
 
 private:
     QString m_rootDir;
     bool m_recursive;
     uint32_t m_samplesPerDir;
-    std::atomic<bool> m_cancelled{false};
+    // FIX: Shared ownership of cancel flag to prevent use-after-free
+    std::shared_ptr<std::atomic<bool>> m_cancelled;
 };

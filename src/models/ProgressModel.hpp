@@ -36,8 +36,8 @@ public:
 
     void start(int totalItems);
     void update(const QString& file, int done, int total);
-    // FIX W-05: Accumulates bytes across calls
-    void updateBytes(quint64 inputBytes, quint64 outputBytes);
+    /** FIX T8: Sets cumulative byte counters (not deltas). */
+    void setBytes(quint64 inputBytes, quint64 outputBytes);
     void finish();
 
     int done() const noexcept { return m_done; }

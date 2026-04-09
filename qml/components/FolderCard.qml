@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 /*
- * EverFree — FolderCard
- * Shows a folder path with remove button
+ * EverFree — FolderCard (DEPRECATED)
+ * This component is not currently used in any active page.
+ * AdvancedWelcome uses an inline delegate instead.
+ * Kept for potential future use. Safe to remove if never referenced.
  */
 
 import QtQuick

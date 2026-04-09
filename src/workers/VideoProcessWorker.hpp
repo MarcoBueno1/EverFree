@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018 Marco Antônio Bueno da Silva <bueno.marco@gmail.com>
- *
- * This file is part of batchpress — Qt6 Desktop GUI video process worker.
+ * EverFree — VideoProcessWorker with thread-safe cancellation.
+ * FIX: Uses shared_ptr<atomic<bool>> to prevent use-after-free in callbacks.
  */
 
 #pragma once
@@ -13,13 +12,8 @@
 #include <batchpress/types.hpp>
 #include <vector>
 #include <atomic>
+#include <memory>
 
-/**
- * @brief Runs process_video_files() on a background QThread.
- *
- * Emits signals thread-safely via Qt::QueuedConnection.
- * Supports cooperative cancellation.
- */
 class VideoProcessWorker : public QThread {
     Q_OBJECT
 
@@ -27,7 +21,7 @@ public:
     explicit VideoProcessWorker(const std::vector<batchpress::FileItem>& files,
                                  batchpress::VideoConfig config, QObject* parent = nullptr);
 
-    void cancel() noexcept { m_cancelled = true; }
+    void cancel() noexcept { if (m_cancelled) m_cancelled->store(true); }
 
 protected:
     void run() override;
@@ -41,5 +35,6 @@ signals:
 private:
     std::vector<batchpress::FileItem> m_files;
     batchpress::VideoConfig m_config;
-    std::atomic<bool> m_cancelled{false};
+    // FIX: Shared ownership to prevent use-after-free
+    std::shared_ptr<std::atomic<bool>> m_cancelled;
 };

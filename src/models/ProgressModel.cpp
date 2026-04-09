@@ -39,11 +39,12 @@ void ProgressModel::update(const QString& file, int done, int total)
     emit progressUpdated();
 }
 
-void ProgressModel::updateBytes(quint64 inputBytes, quint64 outputBytes)
+void ProgressModel::setBytes(quint64 inputBytes, quint64 outputBytes)
 {
-    // FIX W-05: Accumulate bytes across calls instead of replacing
-    m_inputBytes += inputBytes;
-    m_outputBytes += outputBytes;
+    // FIX T8: These are cumulative values from batchpress, not deltas.
+    // Use direct assignment instead of accumulation.
+    m_inputBytes = inputBytes;
+    m_outputBytes = outputBytes;
     emit bytesUpdated();
 }
 

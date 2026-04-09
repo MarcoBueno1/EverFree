@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 /*
- * EverFree — BigButton
- * Large, prominent button for simple mode actions
+ * EverFree — BigButton (DEPRECATED)
+ * This component is not currently used in any active page.
+ * Kept for potential future use. Safe to remove if never referenced.
  */
 
 import QtQuick
@@ -11,54 +12,32 @@ import QtQuick.Layouts
 
 Button {
     id: root
+    Layout.preferredHeight: 64
+    Layout.fillWidth: true
 
-    property string icon: ""
-    property bool isPrimary: true
-
-    implicitHeight: 64
-    implicitWidth: 280
-
-    Material.background: isPrimary ?
-        Material.color(Material.Green, Material.Shade600) :
-        Material.color(Material.Grey, Material.Shade700)
-    Material.foreground: isPrimary ? Material.primaryTextColor : Material.foreground
-
-    font.pixelSize: 18
-    font.bold: true
-    font.weight: Font.Bold
-
-    flat: false
+    property string iconText: ""
 
     contentItem: RowLayout {
         spacing: 12
-
         Label {
-            text: root.icon
+            text: root.iconText
             font.pixelSize: 28
-            color: root.Material.foreground
-            horizontalAlignment: Text.AlignHCenter
         }
-
         Label {
             text: root.text
-            font: root.font
-            color: root.Material.foreground
-            horizontalAlignment: Text.AlignHCenter
-            elide: Text.ElideMiddle
-            Layout.fillWidth: true
+            font.pixelSize: 18
+            font.bold: true
+            color: "white"
         }
     }
 
     background: Rectangle {
-        implicitHeight: root.implicitHeight
-        implicitWidth: root.implicitWidth
         radius: 16
-        color: root.pressed ?
-            Material.color(Material.Green, Material.Shade800) :
-            root.Material.background
-
-        Behavior on color {
-            ColorAnimation { duration: 150 }
-        }
+        color: root.pressed
+            ? Material.color(Material.Green, Material.Shade900)
+            : (root.hovered
+                ? Material.color(Material.Green, Material.Shade600)
+                : Material.color(Material.Green, Material.Shade700))
+        Behavior on color { ColorAnimation { duration: 150 } }
     }
 }

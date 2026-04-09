@@ -564,7 +564,8 @@ Page {
                     flat: true
                     Material.foreground: Material.hintTextColor
                     onClicked: {
-                        appController.cancel()
+                        scanComplete = false
+                        appController.reset()
                     }
                 }
 
@@ -587,6 +588,7 @@ Page {
                     Material.foreground: Material.primaryTextColor
                     font.pixelSize: 15
                     font.bold: true
+                    onClicked: appController.startProcessing()
                 }
             }
         }

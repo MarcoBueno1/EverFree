@@ -13,7 +13,7 @@ import EverFree 1.0
 Dialog {
     id: root
 
-    title: qsTr("⚙️ Configurações")
+    title: qsTr("\u2699\uFE0F Configura\u00e7\u00f5es")
     modal: true
     focus: true
     width: 500
@@ -45,6 +45,7 @@ Dialog {
                 appController.crf = crfSlider.value
                 appController.maxRes = resCombo.values[resCombo.currentIndex]
                 appController.threads = threadBox.value
+                appController.recursive = recursiveCheck.checked
                 root.close()
             }
         }
@@ -66,7 +67,7 @@ Dialog {
             spacing: 14
 
         Label {
-            text: "🚀 Modo Padrão"
+            text: "\uD83D\uDE80 Modo Padr\u00e3o"
             font.pixelSize: 16
             font.bold: true
             color: Material.color(Material.Green, Material.Shade300)
@@ -75,11 +76,11 @@ Dialog {
         // Default mode selection
         RowLayout {
             spacing: 12
-            Label { text: "Modo de início:"; width: 140 }
+            Label { text: "Modo de in\u00edcio:"; width: 140 }
             ComboBox {
                 id: defaultModeCombo
                 Layout.fillWidth: true
-                model: ["Modo Simples", "Modo Avançado"]
+                model: ["Modo Simples", "Modo Avan\u00e7ado"]
                 property var values: [1, 2] // Simple=1, Advanced=2
                 Component.onCompleted: {
                     currentIndex = appController.defaultMode === 2 ? 1 : 0
@@ -88,7 +89,7 @@ Dialog {
         }
 
         Label {
-            text: "🖼️ Imagens"
+            text: "\uD83D\uDDBC\uFE0F Imagens"
             font.pixelSize: 16
             font.bold: true
             color: Material.color(Material.Green, Material.Shade300)
@@ -103,6 +104,11 @@ Dialog {
                 Layout.fillWidth: true
                 model: ["Mesmo (same)", "WebP", "JPEG", "PNG", "BMP"]
                 property var values: ["same", "webp", "jpg", "png", "bmp"]
+                Component.onCompleted: {
+                    var fmt = appController.imageFormat
+                    var idx = values.indexOf(fmt)
+                    currentIndex = idx >= 0 ? idx : 0
+                }
             }
         }
 
@@ -133,7 +139,7 @@ Dialog {
         }
 
         Label {
-            text: "🎬 Vídeos"
+            text: "\uD83C\uDFAC V\u00eddeos"
             font.pixelSize: 16
             font.bold: true
             color: Material.color(Material.Green, Material.Shade300)
@@ -146,8 +152,13 @@ Dialog {
             ComboBox {
                 id: codecCombo
                 Layout.fillWidth: true
-                model: ["Automático", "H.265", "H.264", "VP9"]
+                model: ["Autom\u00e1tico", "H.265", "H.264", "VP9"]
                 property var values: ["auto", "h265", "h264", "vp9"]
+                Component.onCompleted: {
+                    var codec = appController.vcodec
+                    var idx = values.indexOf(codec)
+                    currentIndex = idx >= 0 ? idx : 0
+                }
             }
         }
 
@@ -168,20 +179,36 @@ Dialog {
         // Max resolution
         RowLayout {
             spacing: 12
-            Label { text: "Resolução máx:"; width: 120 }
+            Label { text: "Resolu\u00e7\u00e3o m\u00e1x:"; width: 120 }
             ComboBox {
                 id: resCombo
                 Layout.fillWidth: true
                 model: ["Original", "4K", "1080p", "720p", "480p"]
                 property var values: ["original", "4k", "1080p", "720p", "480p"]
+                Component.onCompleted: {
+                    var res = appController.maxRes
+                    var idx = values.indexOf(res)
+                    currentIndex = idx >= 0 ? idx : 0
+                }
             }
         }
 
         Label {
-            text: "⚡ Geral"
+            text: "\u26A1 Geral"
             font.pixelSize: 16
             font.bold: true
             color: Material.color(Material.Green, Material.Shade300)
+        }
+
+        // Recursive search
+        RowLayout {
+            spacing: 12
+            Label { text: "Busca recursiva:"; width: 120 }
+            CheckBox {
+                id: recursiveCheck
+                checked: appController.recursive
+                Material.foreground: Material.foreground
+            }
         }
 
         // Threads
@@ -194,7 +221,7 @@ Dialog {
                 to: 64
                 value: appController.threads
             }
-            Label { text: "(0 = automático)"; color: Material.hintTextColor }
+            Label { text: "(0 = autom\u00e1tico)"; color: Material.hintTextColor }
         }
         } // ColumnLayout
     } // Flickable

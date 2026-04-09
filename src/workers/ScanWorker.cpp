@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 /*
- * EverFree — ScanWorker with QPointer guard for thread safety.
+ * EverFree — ScanWorker implementation.
+ * FIX: Uses shared_ptr<atomic<bool>> for thread-safe cancellation.
  */
 
 #include "ScanWorker.hpp"
@@ -8,12 +9,18 @@
 #include <stdexcept>
 
 ScanWorker::ScanWorker(const QString& rootDir, bool recursive, uint32_t samplesPerDir, QObject* parent)
-    : QThread(parent), m_rootDir(rootDir), m_recursive(recursive), m_samplesPerDir(samplesPerDir)
+    : QThread(parent)
+    , m_rootDir(rootDir)
+    , m_recursive(recursive)
+    , m_samplesPerDir(samplesPerDir)
+    , m_cancelled(std::make_shared<std::atomic<bool>>(false))
 {}
 
 void ScanWorker::run()
 {
     QPointer<ScanWorker> selfGuard(this);
+    // FIX: Capture cancelled by shared_ptr copy (not by this pointer)
+    auto cancelled = m_cancelled;
 
     try {
         batchpress::ScanConfig cfg;
@@ -22,17 +29,21 @@ void ScanWorker::run()
         cfg.samples_per_dir = m_samplesPerDir;
         cfg.num_threads = 0;
 
-        cfg.on_progress = [this, selfGuard](const std::string& filename, uint32_t done, uint32_t total) {
-            if (!selfGuard || m_cancelled.load()) return;
-            emit progressUpdated(QString::fromStdString(filename), static_cast<int>(done),
-                                 static_cast<int>(total));
+        cfg.on_progress = [selfGuard, cancelled](const std::string& filename, uint32_t done, uint32_t total) {
+            if (!selfGuard || cancelled->load()) return;
+            QMetaObject::invokeMethod(selfGuard, [selfGuard, filename, done, total]() {
+                emit selfGuard->progressUpdated(
+                    QString::fromStdString(filename),
+                    static_cast<int>(done),
+                    static_cast<int>(total));
+            }, Qt::QueuedConnection);
         };
 
-        if (m_cancelled.load()) { emit scanFailed("Scan cancelled"); return; }
+        if (cancelled->load()) { emit scanFailed("Scan cancelled"); return; }
 
         auto report = batchpress::scan_files(cfg);
 
-        if (m_cancelled.load()) { emit scanFailed("Scan cancelled"); return; }
+        if (cancelled->load()) { emit scanFailed("Scan cancelled"); return; }
 
         emit scanComplete(std::move(report));
     } catch (const std::exception& e) {

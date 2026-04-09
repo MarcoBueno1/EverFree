@@ -112,9 +112,10 @@ ApplicationWindow {
                 elide: Text.ElideMiddle
             }
 
-            // Contador de arquivos durante scan (apenas processamento, não amostragem)
+            // Contador de arquivos durante scan ou processamento
             Label {
-                visible: appController.state === AppController.Processing &&
+                visible: (appController.state === AppController.Processing ||
+                          appController.state === AppController.Scanning) &&
                          appController.progressModel.total > 0
                 text: appController.progressModel.done + " / " +
                       appController.progressModel.total + " arquivos"
@@ -123,9 +124,10 @@ ApplicationWindow {
                 opacity: 0.85
             }
 
-            // Percentual durante processamento
+            // Percentual durante processamento ou scan
             Label {
-                visible: appController.state === AppController.Processing &&
+                visible: (appController.state === AppController.Processing ||
+                          appController.state === AppController.Scanning) &&
                          appController.progressModel.total > 0
                 text: Math.round(appController.progressModel.percent) + "%"
                 font.pixelSize: 13
@@ -151,7 +153,13 @@ ApplicationWindow {
         }
         Component {
             id: homeModePage
-            HomeModePicker { objectName: "homeModePicker" }
+            HomeModePicker {
+                objectName: "homeModePicker"
+                simpleWelcomeComp: simpleWelcomePage
+                advancedWelcomeComp: advancedWelcomePage
+                scanPageComp: scanPage
+                stackViewRef: stackView
+            }
         }
         Component {
             id: scanPage
@@ -210,8 +218,9 @@ ApplicationWindow {
 
         switch (state) {
             case AppController.Idle:
-                if (current !== "homeModePicker" && current !== "simpleWelcome" && current !== "advancedWelcome") {
-                    stackView.pop(null)
+                // FIX T6: Use clear() + push to avoid accumulating duplicate pages
+                if (current !== "simpleWelcome" && current !== "advancedWelcome" && current !== "homeModePicker") {
+                    stackView.clear()
                     if (appController.defaultMode === 2) {
                         stackView.push(advancedWelcomePage)
                     } else {
@@ -238,11 +247,13 @@ ApplicationWindow {
                     stackView.push(scanPage)
                 }
                 break
-            case AppController.Selecting:
-                if (current !== "selectPage") stackView.push(selectPage)
-                break
             case AppController.Processing:
-                if (current !== "processPage") stackView.push(processPage)
+                if (current !== "processPage") {
+                    var pg = stackView.push(processPage)
+                    if (pg && pg.objectName === "processPage") {
+                        pg.stackViewRef = stackView
+                    }
+                }
                 break
             case AppController.Complete:
             case AppController.Error:

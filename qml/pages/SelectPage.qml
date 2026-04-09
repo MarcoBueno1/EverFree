@@ -7,7 +7,7 @@ import EverFree 1.0
 Page {
     id: root
     objectName: "selectPage"
-    
+
     // Paleta de cores personalizada
     property color primaryColor: "#10B981"      // Verde esmeralda moderno
     property color primaryDark: "#059669"       // Verde mais escuro
@@ -22,7 +22,7 @@ Page {
     property color borderColor: "#374151"       // Bordas sutis
     property color successColor: "#10B981"      // Verde para economia
     property color warningColor: "#F59E0B"      // Amarelo para alertas
-    
+
     leftPadding: 28
     rightPadding: 28
     topPadding: 24
@@ -30,7 +30,10 @@ Page {
 
     property string filterText: ""
     property int filterType: 0
-    property int selectedCount: 0
+
+    function calculateSelectedCount() {
+        return appController.fileModel.selectedCount
+    }
 
     function formatBytes(bytes) {
         if (bytes === 0) return "0 B"
@@ -81,7 +84,7 @@ Page {
                     radius: 14
                     color: Qt.rgba(1, 1, 1, 0.2)
                     Layout.alignment: Qt.AlignVCenter
-                    
+
                     Label {
                         anchors.centerIn: parent
                         text: "📋"
@@ -96,7 +99,7 @@ Page {
 
                     Row {
                         spacing: 12
-                        
+
                         Label {
                             text: qsTr("%1 arquivos").arg(appController.fileModel.rowCount())
                             font.pixelSize: 20
@@ -131,12 +134,12 @@ Page {
 
                     Row {
                         spacing: 8
-                        
+
                         Label {
                             text: formatBytes(appController.reportModel.totalSize)
                             font.pixelSize: 13
                             color: Qt.rgba(1, 1, 1, 0.6)
-                            font.strikeout: true 
+                            font.strikeout: true
                         }
 
                         Label {
@@ -165,22 +168,23 @@ Page {
 
                     // Círculo de progresso simplificado
                     Canvas {
+                        id: savingsCircle
                         anchors.fill: parent
                         onPaint: {
                             var ctx = getContext("2d")
                             var centerX = width / 2
                             var centerY = height / 2
                             var radius = 34
-                            
+
                             ctx.clearRect(0, 0, width, height)
-                            
+
                             // Fundo do círculo
                             ctx.beginPath()
                             ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI)
                             ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.2)
                             ctx.lineWidth = 6
                             ctx.stroke()
-                            
+
                             // Progresso
                             var percent = calculateSavingsPercent() / 100
                             ctx.beginPath()
@@ -189,7 +193,7 @@ Page {
                             ctx.lineWidth = 6
                             ctx.lineCap = "round"
                             ctx.stroke()
-                            
+
                             // Texto no centro
                             ctx.fillStyle = "white"
                             ctx.font = "bold 18px sans-serif"
@@ -197,6 +201,13 @@ Page {
                             ctx.textBaseline = "middle"
                             ctx.fillText("%1%".arg(calculateSavingsPercent()), centerX, centerY)
                         }
+                    }
+
+                    // Repaint when savings percent changes
+                    Connections {
+                        target: appController.reportModel
+                        function onTotalSizeChanged() { savingsCircle.requestPaint() }
+                        function onTotalProjectedSizeChanged() { savingsCircle.requestPaint() }
                     }
                 }
             }
@@ -283,6 +294,8 @@ Page {
                     border.color: root.filterType === 0 ? "transparent" : root.borderColor
                     border.width: 1
                 }
+
+                onClicked: root.filterType = 0
             }
 
             Button {
@@ -302,6 +315,8 @@ Page {
                     border.color: root.filterType === 1 ? "transparent" : root.borderColor
                     border.width: 1
                 }
+
+                onClicked: root.filterType = 1
             }
 
             Button {
@@ -321,15 +336,17 @@ Page {
                     border.color: root.filterType === 2 ? "transparent" : root.borderColor
                     border.width: 1
                 }
+
+                onClicked: root.filterType = 2
             }
 
             Item { Layout.fillWidth: true }
 
             Label {
-                text: qsTr("%1 selecionados").arg(root.selectedCount)
+                text: qsTr("%1 selecionados").arg(root.calculateSelectedCount())
                 font.pixelSize: 13
                 Material.foreground: root.textMuted
-                visible: root.selectedCount > 0
+                visible: root.calculateSelectedCount() > 0
             }
         }
 
@@ -414,7 +431,7 @@ Page {
                 text: qsTr("Selecionar Todos")
                 enabled: true
                 font.pixelSize: 14
-                visible: root.selectedCount < appController.fileModel.rowCount()
+                visible: root.calculateSelectedCount() < appController.fileModel.rowCount()
 
                 contentItem: Label {
                     text: "Selecionar Todos"
@@ -431,13 +448,15 @@ Page {
                     border.width: 1
                 }
 
-                onClicked: selectAllFiles(true)
+                onClicked: {
+                    appController.fileModel.selectAll(true)
+                }
             }
 
             Button {
                 id: processButton
                 text: qsTr("Processar Selecionados ▶")
-                enabled: root.selectedCount > 0
+                enabled: root.calculateSelectedCount() > 0
                 font.pixelSize: 15
                 font.bold: true
                 Layout.preferredHeight: 48
@@ -463,11 +482,7 @@ Page {
         }
     }
 
-    function selectAllFiles(selected) {
-        root.selectedCount = selected ? appController.fileModel.rowCount() : 0
-    }
-
     function invertSelection() {
-        root.selectedCount = appController.fileModel.rowCount() - root.selectedCount
+        appController.fileModel.invertSelection()
     }
 }

@@ -107,7 +107,7 @@ Page {
                 color: Material.hintTextColor
             }
 
-            // Backup list
+            // Backup list — TODO: Connect to C++ backup model
             ListView {
                 id: backupList
                 Layout.fillWidth: true

@@ -52,11 +52,9 @@ public:
 
     enum class AppState {
         Idle,
-        ModeSelected,
         Scanning,
         ScanComplete,
         AwaitingConfirmation,
-        Selecting,
         Processing,
         Complete,
         Error
@@ -340,6 +338,9 @@ private:
     // Local processing history database (works for ALL users)
     EverFree::ProcessingDatabase* m_db = nullptr;
 
+    // Settings persistence (must be last — initialized after all other members)
+    QSettings m_settings;
+
     /** Check if file was already processed (by hash). */
     Q_INVOKABLE bool wasFileProcessed(const QString& inputSha256) const;
 
@@ -360,7 +361,4 @@ private:
 
     /** Get top formats (for reports). */
     Q_INVOKABLE QVariantList getTopFormats(int limit = 10) const;
-
-    // Settings persistence
-    QSettings m_settings;
 };

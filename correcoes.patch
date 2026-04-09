@@ -1,0 +1,178 @@
+diff --git a/qml/pages/SelectPage.qml b/qml/pages/SelectPage.qml
+--- a/qml/pages/SelectPage.qml
++++ b/qml/pages/SelectPage.qml
+@@ -70,20 +70,25 @@ Page {
+             Layout.fillWidth: true
+             implicitHeight: summaryContent.height + 24
+             radius: 10
+-            color: Material.color(Material.Green, Material.Shade900)
++            Material.background: Material.color(Material.Green, Material.Shade900)
+             Material.elevation: 2
+ 
+             RowLayout {
+                 id: summaryContent
+                 anchors.fill: parent
+                 anchors.margins: 16
++                spacing: 16
+ 
+-                Label {
++                // Ícone
++                Label {
+                     text: "📋"
+                     font.pixelSize: 24
++                    Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
++                    Layout.preferredWidth: 30
+                 }
+ 
+-                ColumnLayout {
++                // Informações em coluna
++                ColumnLayout {
+                     Layout.fillWidth: true
+                     spacing: 2
+ 
+@@ -91,6 +96,8 @@ Page {
+                         text: qsTr("%1 arquivos").arg(appController.fileModel.rowCount())
+                         font.pixelSize: 15
+                         font.bold: true
++                        color: Material.color(Material.Green, Material.Shade200)
++                        elide: Text.ElideRight
+                     }
+ 
+                     Label {
+@@ -98,12 +105,16 @@ Page {
+                         font.pixelSize: 14
+                         color: Material.color(Material.Green, Material.Shade300)
++                        elide: Text.ElideRight
+                     }
+ 
+                     Label {
+                         text: "%1 → %2"
+                             .arg(formatBytes(appController.reportModel.totalSize))
+                             .arg(formatBytes(appController.reportModel.totalProjectedSize))
+                         font.pixelSize: 12
+                         color: Material.color(Material.Green, Material.Shade400)
++                        elide: Text.ElideRight
+                     }
+                 }
+             }
+diff --git a/qml/components/FileListItem.qml b/qml/components/FileListItem.qml
+--- a/qml/components/FileListItem.qml
++++ b/qml/components/FileListItem.qml
+@@ -8,7 +8,7 @@ Item {
+     height: visible ? 56 : 0
+     visible: matchesFilter
+ 
+-    property string filePath: model.filePath
++    property string filePath: model.filePath !== undefined ? model.filePath : ""
+     property string fileName: model.fileName
+     property var fileSizeRaw: model.fileSize
+     property var projectedSizeRaw: model.projectedSize
+@@ -45,6 +45,15 @@ Item {
+         return typeMatch && nameMatch
+     }
+ 
++    function formatFileSize(bytes) {
++        if (bytes === undefined || bytes === null) return ""
++        bytes = Number(bytes)
++        if (bytes === 0) return "0 B"
++        var k = 1024
++        var sizes = ["B", "KB", "MB", "GB"]
++        var i = Math.floor(Math.log(bytes) / Math.log(k))
++        return (bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0) + " " + sizes[i]
++    }
++
+     Rectangle {
+         anchors.fill: parent
+         anchors.margins: 2
+@@ -70,6 +79,8 @@ Item {
+             id: itemCheck
+             checked: root.isSelected
+             Material.foreground: Material.color(Material.Green, Material.Shade300)
++            Layout.preferredWidth: 24
++            Layout.alignment: Qt.AlignVCenter
+         }
+ 
+         Label {
+@@ -77,6 +88,8 @@ Item {
+             property bool isImage: root.isImage
+             text: isImage ? "🖼️" : "🎬"
+             font.pixelSize: 18
++            Layout.preferredWidth: 28
++            Layout.alignment: Qt.AlignVCenter
+         }
+ 
+         ColumnLayout {
+@@ -84,6 +97,8 @@ Item {
+             Layout.fillHeight: true
+             Layout.alignment: Qt.AlignVCenter
+             spacing: 2
++            Layout.maximumWidth: parent.width - 200
+ 
+             Label {
+                 id: nameLabel
+@@ -91,6 +106,8 @@ Item {
+                 font.pixelSize: 13
+                 color: Material.foreground
+                 elide: Text.ElideMiddle
++                wrapMode: Text.NoWrap
++                maximumLineCount: 1
+             }
+ 
+             Label {
+@@ -105,6 +122,8 @@ Item {
+                 font.pixelSize: 11
+                 color: Material.hintTextColor
+                 visible: text !== ""
++                elide: Text.ElideRight
++                wrapMode: Text.NoWrap
+             }
+         }
+ 
+@@ -114,12 +133,16 @@ Item {
+             spacing: 4
+ 
+             Label {
+-                text: fileSize
++                id: sizeLabel
++                text: root.fileSize
+                 font.pixelSize: 12
+                 color: Material.hintTextColor
+             }
+ 
+             Label {
++                id: arrowLabel
+                 text: "→"
+                 font.pixelSize: 12
+                 color: Material.color(Material.Green, Material.Shade300)
+@@ -127,6 +150,7 @@ Item {
+ 
+             Label {
++                id: projectedLabel
+                 text: projectedSize
+                 font.pixelSize: 12
+                 font.bold: true
+@@ -137,12 +161,16 @@ Item {
+ 
+         Label {
+             id: savingsLabel
+             property real value: root.savingsPct
+             text: value > 0 ? "-%1%".arg(Math.round(value)) : ""
+             font.pixelSize: 12
+             font.bold: true
+             color: value > 0 ? Material.color(Material.Green, Material.Shade300) : Material.hintTextColor
++            Layout.preferredWidth: 50
++            Layout.alignment: Qt.AlignVCenter
++            horizontalAlignment: Text.AlignHCenter
+         }
+ 
+         Label {
+@@ -150,6 +178,8 @@ Item {
+             text: root.qualityStars
+             font.pixelSize: 12
+             color: Material.color(Material.Yellow, Material.Shade300)
++            Layout.preferredWidth: 50
++            Layout.alignment: Qt.AlignVCenter
++            horizontalAlignment: Text.AlignHCenter
+         }
+     }
+ }

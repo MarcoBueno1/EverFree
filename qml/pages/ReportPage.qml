@@ -231,13 +231,14 @@ Page {
             }
         }
 
-        // Codec breakdown card (if available)
+        // Codec breakdown card — hidden until real model is available
+        // TODO: Connect to actual codec statistics model from C++
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 160
             Material.background: Material.color(Material.Grey, Material.Shade700)
             Material.elevation: 2
-            visible: codecRepeater.count > 0
+            visible: false  // Disabled until real data source is available
 
             ColumnLayout {
                 anchors.fill: parent
