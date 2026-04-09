@@ -14,12 +14,21 @@ ThemeManager::ThemeManager(QObject* parent)
     // Restore preference from settings
     QSettings settings("batchpress", "batchpress_gui");
     m_darkMode = settings.value("darkMode", false).toBool();
+    m_highContrast = settings.value("highContrast", false).toBool();
 }
 
 void ThemeManager::applyTheme(QGuiApplication* app)
 {
     if (!app) return;
-    app->setPalette(m_darkMode ? createDarkPalette() : createLightPalette());
+    
+    QPalette palette;
+    if (m_highContrast) {
+        palette = m_darkMode ? createHighContrastDarkPalette() : createHighContrastLightPalette();
+    } else {
+        palette = m_darkMode ? createDarkPalette() : createLightPalette();
+    }
+    
+    app->setPalette(palette);
     emit darkModeChanged();
 }
 
@@ -38,6 +47,21 @@ void ThemeManager::setDarkMode(bool dark)
     QSettings settings("batchpress", "batchpress_gui");
     settings.setValue("darkMode", m_darkMode);
     applyTheme(qGuiApp);
+}
+
+void ThemeManager::setHighContrast(bool enabled)
+{
+    if (m_highContrast == enabled) return;
+    m_highContrast = enabled;
+    QSettings settings("batchpress", "batchpress_gui");
+    settings.setValue("highContrast", m_highContrast);
+    emit highContrastChanged();
+    applyTheme(qGuiApp);
+}
+
+void ThemeManager::toggleHighContrast()
+{
+    setHighContrast(!m_highContrast);
 }
 
 QPalette ThemeManager::createDarkPalette()
@@ -87,5 +111,43 @@ QPalette ThemeManager::createLightPalette()
                      QColor(0xa0, 0xa0, 0xa0));
     palette.setColor(QPalette::ColorGroup::Disabled, QPalette::ColorRole::Text,
                      QColor(0xa0, 0xa0, 0xa0));
+    return palette;
+}
+
+QPalette ThemeManager::createHighContrastDarkPalette()
+{
+    QPalette palette;
+    palette.setColor(QPalette::Window, QColor(0, 0, 0));
+    palette.setColor(QPalette::WindowText, QColor(255, 255, 255));
+    palette.setColor(QPalette::Base, QColor(20, 20, 20));
+    palette.setColor(QPalette::AlternateBase, QColor(40, 40, 40));
+    palette.setColor(QPalette::ToolTipBase, QColor(255, 255, 120));
+    palette.setColor(QPalette::ToolTipText, QColor(0, 0, 0));
+    palette.setColor(QPalette::Text, QColor(255, 255, 255));
+    palette.setColor(QPalette::Button, QColor(60, 60, 60));
+    palette.setColor(QPalette::ButtonText, QColor(255, 255, 255));
+    palette.setColor(QPalette::BrightText, QColor(255, 255, 0));
+    palette.setColor(QPalette::Link, QColor(0, 255, 255));
+    palette.setColor(QPalette::Highlight, QColor(0, 120, 215));
+    palette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
+    return palette;
+}
+
+QPalette ThemeManager::createHighContrastLightPalette()
+{
+    QPalette palette;
+    palette.setColor(QPalette::Window, QColor(255, 255, 255));
+    palette.setColor(QPalette::WindowText, QColor(0, 0, 0));
+    palette.setColor(QPalette::Base, QColor(240, 240, 240));
+    palette.setColor(QPalette::AlternateBase, QColor(220, 220, 220));
+    palette.setColor(QPalette::ToolTipBase, QColor(255, 255, 200));
+    palette.setColor(QPalette::ToolTipText, QColor(0, 0, 0));
+    palette.setColor(QPalette::Text, QColor(0, 0, 0));
+    palette.setColor(QPalette::Button, QColor(200, 200, 200));
+    palette.setColor(QPalette::ButtonText, QColor(0, 0, 0));
+    palette.setColor(QPalette::BrightText, QColor(0, 0, 255));
+    palette.setColor(QPalette::Link, QColor(0, 0, 200));
+    palette.setColor(QPalette::Highlight, QColor(0, 100, 200));
+    palette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
     return palette;
 }
