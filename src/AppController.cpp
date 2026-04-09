@@ -327,6 +327,22 @@ void AppController::onScanComplete(batchpress::FileScanReport report)
     m_mergedReport.files.insert(m_mergedReport.files.end(),
                                 report.files.begin(), report.files.end());
 
+    // Check for already-compressed files to warn user
+    int alreadyCompressedCount = 0;
+    for (const auto& file : report.files) {
+        QString ext = QString::fromStdString(file.path).split('.').last().toLower();
+        if (ext == "webp" || ext == "avif" || ext == "heic" || ext == "heif") {
+            alreadyCompressedCount++;
+        }
+    }
+    
+    if (alreadyCompressedCount > 0 && m_mode == AppMode::Simple) {
+        m_simpleStatus = QString("⚠️ %1 arquivo(s) já parecem estar comprimidos (WebP/AVIF/HEIC)\n"
+                                 "💡 Eles podem não reduzir muito mais de tamanho")
+                             .arg(alreadyCompressedCount);
+        emit simpleStatusChanged();
+    }
+
     // Clean up worker (non-blocking)
     if (m_scanWorker) {
         m_scanWorker->deleteLater();
@@ -372,6 +388,35 @@ void AppController::onScanComplete(batchpress::FileScanReport report)
 void AppController::onScanFailed(const QString& error)
 {
     addErrorPath(m_currentFolderName);
+
+    // Generate user-friendly error message with suggestion
+    QString userMessage;
+    QString lowerError = error.toLower();
+    
+    if (lowerError.contains("permission") || lowerError.contains("acess")) {
+        userMessage = QString("❌ Sem permissão para acessar '%1'\n"
+                              "💡 Clique direito na pasta → Propriedades → Segurança → Dar permissão")
+                          .arg(m_currentFolderName);
+    } else if (lowerError.contains("no such") || lowerError.contains("not found") || lowerError.contains("não existe")) {
+        userMessage = QString("❌ Pasta '%1' não encontrada\n"
+                              "💡 Verifique se a pasta foi movida, renomeada ou removida")
+                          .arg(m_currentFolderName);
+    } else if (lowerError.contains("disk") || lowerError.contains("espaço") || lowerError.contains("space")) {
+        userMessage = QString("❌ Espaço insuficiente para escanear '%1'\n"
+                              "💡 Libere espaço em disco ou escolha outra pasta de destino")
+                          .arg(m_currentFolderName);
+    } else if (lowerError.contains("empty") || lowerError.contains("vazi")) {
+        userMessage = QString("⚠️ Pasta '%1' está vazia ou sem arquivos compatíveis\n"
+                              "💡 Verifique se há imagens (JPG, PNG, WebP) ou vídeos (MP4, MKV)")
+                          .arg(m_currentFolderName);
+    } else {
+        userMessage = QString("❌ Não foi possível acessar '%1'\n"
+                              "💡 Verifique se a pasta existe, está acessível e não está corrompida")
+                          .arg(m_currentFolderName);
+    }
+    
+    m_simpleStatus = userMessage;
+    emit simpleStatusChanged();
 
     if (m_scanWorker) {
         m_scanWorker->deleteLater();

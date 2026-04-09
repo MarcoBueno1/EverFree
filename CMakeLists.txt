@@ -172,6 +172,7 @@ set(QML_FILES
     qml/dialogs/ErrorReportDialog.qml
     qml/dialogs/ConfirmDialog.qml
     qml/dialogs/SubscriptionDialog.qml
+    qml/dialogs/OnboardingDialog.qml
 )
 
 # ── Executable ─────────────────────────────────────────────────────────────────

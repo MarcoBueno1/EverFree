@@ -115,7 +115,10 @@ Dialog {
         // Image quality
         RowLayout {
             spacing: 12
-            Label { text: "Qualidade:"; width: 120 }
+            Label { 
+                text: "Qualidade:"
+                width: 120
+            }
             Slider {
                 id: qualitySlider
                 Layout.fillWidth: true
@@ -123,7 +126,22 @@ Dialog {
                 to: 100
                 value: appController.imageQuality
             }
-            Label { text: qualitySlider.value.toFixed(0); width: 30 }
+            Label { 
+                text: qualitySlider.value.toFixed(0)
+                width: 30
+                
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    ToolTip.visible: containsMouse
+                    ToolTip.text: {
+                        if (qualitySlider.value >= 90) return "Qualidade máxima (arquivos grandes)"
+                        if (qualitySlider.value >= 75) return "Alta qualidade (recomendado)"
+                        if (qualitySlider.value >= 50) return "Qualidade média (bom equilíbrio)"
+                        return "Qualidade baixa (arquivos menores)"
+                    }
+                }
+            }
         }
 
         // Resize spec
@@ -148,11 +166,19 @@ Dialog {
         // Video codec
         RowLayout {
             spacing: 12
-            Label { text: "Codec:"; width: 120 }
+            Label { 
+                text: "Codec:"
+                width: 120
+            }
             ComboBox {
                 id: codecCombo
                 Layout.fillWidth: true
-                model: ["Autom\u00e1tico", "H.265", "H.264", "VP9"]
+                model: [
+                    "Automático (recomendado)",
+                    "H.265 (HEVC) - Melhor compressão",
+                    "H.264 (AVC) - Compatibilidade máxima",
+                    "VP9 (WebM) - Para web"
+                ]
                 property var values: ["auto", "h265", "h264", "vp9"]
                 Component.onCompleted: {
                     var codec = appController.vcodec
@@ -165,7 +191,10 @@ Dialog {
         // CRF
         RowLayout {
             spacing: 12
-            Label { text: "CRF (qualidade):"; width: 120 }
+            Label { 
+                text: "CRF (qualidade):"
+                width: 120
+            }
             Slider {
                 id: crfSlider
                 Layout.fillWidth: true
@@ -173,17 +202,29 @@ Dialog {
                 to: 51
                 value: appController.crf
             }
-            Label { text: crfSlider.value < 0 ? "Auto" : crfSlider.value.toFixed(0); width: 40 }
+            Label { 
+                text: crfSlider.value < 0 ? "Auto" : crfSlider.value.toFixed(0)
+                width: 40
+            }
         }
 
         // Max resolution
         RowLayout {
             spacing: 12
-            Label { text: "Resolu\u00e7\u00e3o m\u00e1x:"; width: 120 }
+            Label { 
+                text: "Resolu\u00e7\u00e3o m\u00e1x:"
+                width: 120
+            }
             ComboBox {
                 id: resCombo
                 Layout.fillWidth: true
-                model: ["Original", "4K", "1080p", "720p", "480p"]
+                model: [
+                    "Original (manter tamanho)",
+                    "4K (3840x2160)",
+                    "1080p Full HD (1920x1080)",
+                    "720p HD (1280x720)",
+                    "480p SD (854x480)"
+                ]
                 property var values: ["original", "4k", "1080p", "720p", "480p"]
                 Component.onCompleted: {
                     var res = appController.maxRes

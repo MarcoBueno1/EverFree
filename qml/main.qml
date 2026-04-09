@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import QtCore
 import EverFree 1.0
 
 ApplicationWindow {
@@ -18,6 +19,25 @@ ApplicationWindow {
     Material.primary: Material.Green
     Material.accent: Material.Lime
 
+    // ── Show onboarding on first use ──────────────────────────────────────
+    Component.onCompleted: {
+        if (!onboardingSettings.onboardingSeen) {
+            onboardingTimer.start()
+        }
+    }
+
+    Timer {
+        id: onboardingTimer
+        interval: 500
+        onTriggered: onboardingDialog.open()
+    }
+
+    Settings {
+        id: onboardingSettings
+        category: "onboarding"
+        property bool onboardingSeen: false
+    }
+
     // ── Header ──────────────────────────────────────────────────────────────
     header: ToolBar {
         Material.background: Material.color(Material.Grey, Material.Shade800)
@@ -33,6 +53,32 @@ ApplicationWindow {
                 font.bold: true
                 color: Material.color(Material.Green, Material.Shade300)
                 Layout.leftMargin: 20
+            }
+
+            // Mode indicator badge
+            Rectangle {
+                width: modeLabel.width + 16
+                height: 28
+                radius: 14
+                color: appController.mode === AppController.Simple ?
+                       Material.color(Material.Green, Material.Shade800) :
+                       Material.color(Material.Blue, Material.Shade800)
+                opacity: 0.9
+
+                Label {
+                    id: modeLabel
+                    anchors.centerIn: parent
+                    text: appController.mode === AppController.Simple ?
+                          "\uD83D\uDD30 Modo Simples" : "\uD83C\uDF9B\uFE0F Modo Avan\u00e7ado"
+                    font.pixelSize: 11
+                    font.bold: true
+                    color: Material.primaryTextColor
+                }
+
+                ToolTip.visible: parent.hovered
+                ToolTip.text: appController.mode === AppController.Simple ?
+                    "Modo simples: um clique e pronto! Mude nas configura\u00e7\u00f5es." :
+                    "Modo avan\u00e7ado: controle total de codecs, qualidade e resolu\u00e7\u00e3o"
             }
 
             Item { Layout.fillWidth: true }
@@ -274,5 +320,51 @@ ApplicationWindow {
         }
     }
 
+    // Power user keyboard shortcuts
+    Shortcut {
+        sequence: "Ctrl+S"
+        onActivated: {
+            if (appController.state === AppController.Idle) {
+                // Start scan with keyboard shortcut
+                if (appController.defaultMode === 2) {
+                    // Advanced mode - need to trigger from UI
+                } else {
+                    // Simple mode - auto start
+                    appController.addDefaultUserFolders()
+                    appController.startScan()
+                }
+            }
+        }
+    }
+
+    Shortcut {
+        sequence: "Ctrl+N"
+        onActivated: {
+            // Reset to start
+            appController.reset()
+        }
+    }
+
+    Shortcut {
+        sequence: "Ctrl+,"
+        onActivated: settingsDialog.open()
+    }
+
+    Shortcut {
+        sequence: "F5"
+        onActivated: {
+            if (appController.state === AppController.Idle) {
+                appController.addDefaultUserFolders()
+                appController.startScan()
+            }
+        }
+    }
+
     SettingsDialog { id: settingsDialog }
+    OnboardingDialog {
+        id: onboardingDialog
+        onAccepted: {
+            onboardingSettings.onboardingSeen = true
+        }
+    }
 }

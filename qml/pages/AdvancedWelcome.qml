@@ -105,6 +105,9 @@ Page {
                             color: Material.foreground
                             elide: Text.ElideMiddle
                             Layout.fillWidth: true
+                            
+                            ToolTip.visible: hovered
+                            ToolTip.text: "Double-click para abrir no gerenciador de arquivos"
                         }
 
                         RoundButton {
@@ -114,6 +117,15 @@ Page {
                             display: AbstractButton.TextOnly
                             Material.foreground: Material.color(Material.Red, Material.Shade400)
                             onClicked: appController.removeFolder(index)
+                        }
+
+                        // Double-click to open folder
+                        MouseArea {
+                            anchors.fill: parent
+                            onDoubleClicked: {
+                                var path = appController.folderPaths[index]
+                                Qt.openUrlExternally("file://" + path)
+                            }
                         }
                     }
 
