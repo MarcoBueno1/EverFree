@@ -32,7 +32,7 @@ Button {
     }
 
     background: Rectangle {
-        radius: 16
+        radius: 14
         color: root.pressed
             ? Material.color(Material.Green, Material.Shade900)
             : (root.hovered

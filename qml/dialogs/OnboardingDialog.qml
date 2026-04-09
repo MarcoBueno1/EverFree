@@ -29,7 +29,7 @@ Dialog {
     background: Rectangle {
         // FIX: Use lighter grey for better contrast with text
         color: themeManager.darkMode ? "#303030" : Material.color(Material.Grey, Material.Shade50)
-        radius: 16
+        radius: 14
         border.color: Material.color(Material.Green, Material.Shade700)
         border.width: 2
     }
@@ -50,7 +50,7 @@ Dialog {
                 Rectangle {
                     width: index === root.currentPage ? 24 : 8
                     height: 8
-                    radius: 4
+                    radius: 8
                     color: index === root.currentPage ? 
                            Material.color(Material.Green, Material.Shade400) :
                            index < root.currentPage ?
@@ -134,7 +134,7 @@ Dialog {
                     Layout.fillWidth: true
 
                     Rectangle {
-                        width: 48; height: 48; radius: 24
+                        width: 48; height: 48; radius: 14
                         color: Material.color(Material.Green, Material.Shade800)
                         Label {
                             anchors.centerIn: parent
@@ -166,7 +166,7 @@ Dialog {
                     Layout.fillWidth: true
 
                     Rectangle {
-                        width: 48; height: 48; radius: 24
+                        width: 48; height: 48; radius: 14
                         color: Material.color(Material.Green, Material.Shade800)
                         Label {
                             anchors.centerIn: parent
@@ -198,7 +198,7 @@ Dialog {
                     Layout.fillWidth: true
 
                     Rectangle {
-                        width: 48; height: 48; radius: 24
+                        width: 48; height: 48; radius: 14
                         color: Material.color(Material.Green, Material.Shade800)
                         Label {
                             anchors.centerIn: parent

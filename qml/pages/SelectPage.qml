@@ -23,8 +23,8 @@ Page {
     property color successColor: "#10B981"      // Verde para economia
     property color warningColor: "#F59E0B"      // Amarelo para alertas
 
-    leftPadding: 28
-    rightPadding: 28
+    leftPadding: 30
+    rightPadding: 30
     topPadding: 24
     bottomPadding: 28
 
@@ -63,7 +63,7 @@ Page {
         Rectangle {
             Layout.fillWidth: true
             implicitHeight: 100
-            radius: 16
+            radius: 14
             gradient: Gradient {
                 GradientStop { position: 0.0; color: root.primaryDark }
                 GradientStop { position: 1.0; color: root.primaryColor }
@@ -88,7 +88,7 @@ Page {
                     Label {
                         anchors.centerIn: parent
                         text: "📋"
-                        font.pixelSize: 28
+                        font.pixelSize: 26
                     }
                 }
 
@@ -161,7 +161,7 @@ Page {
                 Rectangle {
                     width: 80
                     height: 80
-                    radius: 40
+                    radius: 14
                     color: "transparent"
                     Layout.alignment: Qt.AlignVCenter
                     visible: calculateSavingsPercent() > 0
@@ -290,7 +290,7 @@ Page {
 
                 background: Rectangle {
                     color: root.filterType === 0 ? root.primaryColor : "transparent"
-                    radius: 20
+                    radius: 14
                     border.color: root.filterType === 0 ? "transparent" : root.borderColor
                     border.width: 1
                 }
@@ -311,7 +311,7 @@ Page {
 
                 background: Rectangle {
                     color: root.filterType === 1 ? root.primaryColor : "transparent"
-                    radius: 20
+                    radius: 14
                     border.color: root.filterType === 1 ? "transparent" : root.borderColor
                     border.width: 1
                 }
@@ -332,7 +332,7 @@ Page {
 
                 background: Rectangle {
                     color: root.filterType === 2 ? root.primaryColor : "transparent"
-                    radius: 20
+                    radius: 14
                     border.color: root.filterType === 2 ? "transparent" : root.borderColor
                     border.width: 1
                 }
@@ -355,7 +355,7 @@ Page {
             Layout.fillWidth: true
             Layout.fillHeight: true
             color: root.surfaceColor
-            radius: 16
+            radius: 14
             Material.elevation: 2
             clip: true
             border.color: root.borderColor
@@ -376,7 +376,7 @@ Page {
                     background: Rectangle { color: "transparent" }
                     contentItem: Rectangle {
                         implicitWidth: 6
-                        radius: 3
+                        radius: 8
                         color: root.primaryColor
                         opacity: 0.6
                     }
@@ -474,7 +474,7 @@ Page {
                     color: processButton.enabled ?
                            (processButton.hovered ? Qt.lighter(root.primaryColor, 1.1) : root.primaryColor) :
                            Qt.darker(root.primaryColor, 0.7)
-                    radius: 24
+                    radius: 14
                 }
 
                 onClicked: appController.startProcessing()

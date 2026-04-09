@@ -16,7 +16,7 @@ Rectangle {
 
     width: codecLayout.implicitWidth + 12
     height: 22
-    radius: 11
+    radius: 12
     color: codecColor
 
     property color codecColor: {

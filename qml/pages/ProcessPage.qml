@@ -34,7 +34,7 @@ Page {
 
             Label {
                 text: processingComplete ? "✅" : "⏳"
-                font.pixelSize: 28
+                font.pixelSize: 26
             }
 
             Label {
@@ -99,12 +99,12 @@ Page {
                 from: 0; to: 100
                 value: progressModel.percent
                 background: Rectangle {
-                    implicitHeight: 14; radius: 7
+                    implicitHeight: 14; radius: 8
                     // FIX: Better contrast
                     color: themeManager.darkMode ? "#505050" : Material.color(Material.Grey, Material.Shade400)
                 }
                 contentItem: Rectangle {
-                    implicitHeight: 14; radius: 7
+                    implicitHeight: 14; radius: 8
                     width: progressModel.percent / 100 * parent.width
                     color: Material.color(Material.Green, Material.Shade500)
                     Behavior on width {
@@ -279,10 +279,10 @@ Page {
                 spacing: 40
 
                 ColumnLayout { spacing: 4; Layout.alignment: Qt.AlignHCenter
-                    Label { text: "✅"; font.pixelSize: 28; Layout.alignment: Qt.AlignHCenter }
+                    Label { text: "✅"; font.pixelSize: 26; Layout.alignment: Qt.AlignHCenter }
                     Label {
                         text: successCount
-                        font.pixelSize: 28; font.bold: true
+                        font.pixelSize: 26; font.bold: true
                         color: Material.color(Material.Green, Material.Shade300)
                         Layout.alignment: Qt.AlignHCenter
                     }
@@ -290,10 +290,10 @@ Page {
                 }
 
                 ColumnLayout { spacing: 4; Layout.alignment: Qt.AlignHCenter
-                    Label { text: "❌"; font.pixelSize: 28; Layout.alignment: Qt.AlignHCenter }
+                    Label { text: "❌"; font.pixelSize: 26; Layout.alignment: Qt.AlignHCenter }
                     Label {
                         text: failCount
-                        font.pixelSize: 28; font.bold: true
+                        font.pixelSize: 26; font.bold: true
                         color: Material.color(Material.Red, Material.Shade300)
                         Layout.alignment: Qt.AlignHCenter
                     }
@@ -301,7 +301,7 @@ Page {
                 }
 
                 ColumnLayout { spacing: 4; Layout.alignment: Qt.AlignHCenter
-                    Label { text: "📉"; font.pixelSize: 28; Layout.alignment: Qt.AlignHCenter }
+                    Label { text: "📉"; font.pixelSize: 26; Layout.alignment: Qt.AlignHCenter }
                     Label {
                         text: {
                             var saved = progressModel.inputBytes - progressModel.outputBytes
@@ -309,7 +309,7 @@ Page {
                             if (saved < 1073741824) return (saved / 1048576).toFixed(1) + " MB"
                             return (saved / 1073741824).toFixed(2) + " GB"
                         }
-                        font.pixelSize: 28; font.bold: true
+                        font.pixelSize: 26; font.bold: true
                         color: Material.color(Material.Green, Material.Shade300)
                         Layout.alignment: Qt.AlignHCenter
                     }

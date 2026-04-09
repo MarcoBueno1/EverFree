@@ -7,8 +7,8 @@ import EverFree 1.0
 Page {
     id: root
     objectName: "scanPage"
-    leftPadding: 32
-    rightPadding: 32
+    leftPadding: 30
+    rightPadding: 30
     topPadding: 24
     bottomPadding: 28
 
@@ -91,7 +91,7 @@ Page {
                     Rectangle {
                         width: 8
                         height: 8
-                        radius: 4
+                        radius: 8
                         color: Material.color(Material.Green, Material.Shade400)
 
                         SequentialAnimation on opacity {
@@ -132,7 +132,7 @@ Page {
                 Rectangle {
                     Layout.fillWidth: true
                     height: 6
-                    radius: 3
+                    radius: 8
                     color: Material.color(Material.Grey, Material.Shade700)
                     visible: !appController.progressModel.active || appController.progressModel.total === 0
                     clip: true
@@ -141,7 +141,7 @@ Page {
                         id: indetermBar
                         width: parent.width * 0.28
                         height: parent.height
-                        radius: 3
+                        radius: 8
                         color: Material.color(Material.Green, Material.Shade500)
 
                         NumberAnimation on x {
@@ -163,14 +163,14 @@ Page {
                     Rectangle {
                         Layout.fillWidth: true
                         height: 6
-                        radius: 3
+                        radius: 8
                         color: Material.color(Material.Grey, Material.Shade700)
                         clip: true
 
                         Rectangle {
                             width: appController.progressModel.percent / 100 * parent.width
                             height: parent.height
-                            radius: 3
+                            radius: 8
                             color: Material.color(Material.Green, Material.Shade500)
 
                             Behavior on width {
@@ -212,7 +212,7 @@ Page {
             Rectangle {
                 Layout.fillWidth: true
                 height: 36
-                radius: 6
+                radius: 8
                 // FIX: Better contrast
                 color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
                 visible: appController.progressModel.currentFile !== ""
@@ -320,7 +320,7 @@ Page {
                         width: scanningList.width
                         height: 34
                         color: "transparent"
-                        radius: 4
+                        radius: 8
 
                         // FIX: Only animate new items, not every visible item
                         opacity: 0
@@ -334,7 +334,7 @@ Page {
                         // Hover
                         Rectangle {
                             anchors.fill: parent
-                            radius: 4
+                            radius: 8
                             color: Material.color(Material.Grey, Material.Shade500)
                             opacity: mouseArea.containsMouse ? 1 : 0
                             Behavior on opacity {
@@ -384,7 +384,7 @@ Page {
                             Rectangle {
                                 width: savingsBadgeLabel.width + 10
                                 height: 18
-                                radius: 9
+                                radius: 8
                                 color: Material.color(Material.Green, Material.Shade800)
                                 border.color: Material.color(Material.Green, Material.Shade600)
                                 border.width: 1
@@ -423,7 +423,7 @@ Page {
                 Label {
                     anchors.centerIn: parent
                     text: "\u2705"
-                    font.pixelSize: 52
+                    font.pixelSize: 48
 
                     NumberAnimation on scale {
                         from: 0.4; to: 1.0
@@ -545,7 +545,7 @@ Page {
                 Rectangle {
                     height: 22
                     width: savingsAmountLabel.width + 12
-                    radius: 11
+                    radius: 12
                     color: Material.color(Material.Green, Material.Shade900)
                     border.color: Material.color(Material.Green, Material.Shade700)
                     border.width: 1

@@ -29,7 +29,7 @@ Page {
 
             Label {
                 text: appController.state === AppController.Error ? "\u26A0\uFE0F" : "\u2705"
-                font.pixelSize: 28
+                font.pixelSize: 26
             }
 
             Label {
@@ -97,7 +97,7 @@ Page {
                     // Arrow
                     Label {
                         text: "\u2192"
-                        font.pixelSize: 36
+                        font.pixelSize: 32
                         color: Material.color(Material.Green, Material.Shade300)
                     }
 
@@ -131,7 +131,7 @@ Page {
                     Rectangle {
                         Layout.preferredWidth: 200
                         Layout.preferredHeight: 40
-                        radius: 20
+                        radius: 14
                         color: Material.color(Material.Green, Material.Shade900)
 
                         Label {

@@ -38,7 +38,7 @@ Page {
 
             Label {
                 text: qsTr("Bem-vindo ao EverFree")
-                font.pixelSize: 32
+                font.pixelSize: 26
                 font.bold: true
                 font.weight: Font.Bold
                 color: Material.foreground
@@ -97,7 +97,7 @@ Page {
                         Layout.alignment: Qt.AlignHCenter
                         width: 80
                         height: 80
-                        radius: 40
+                        radius: 14
                         color: Material.color(Material.Green, Material.Shade800)
 
                         Label {
@@ -173,7 +173,7 @@ Page {
                         Layout.alignment: Qt.AlignHCenter
                         width: 80
                         height: 80
-                        radius: 40
+                        radius: 14
                         color: Material.color(Material.Blue, Material.Shade800)
 
                         Label {

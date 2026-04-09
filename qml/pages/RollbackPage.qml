@@ -30,7 +30,7 @@ Page {
         RowLayout {
             spacing: 16
 
-            Label { text: "🔄"; font.pixelSize: 28 }
+            Label { text: "🔄"; font.pixelSize: 26 }
             Label {
                 text: "Rollback — Restaurar Originais"
                 font.pixelSize: 22

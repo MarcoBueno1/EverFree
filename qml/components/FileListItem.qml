@@ -102,7 +102,7 @@ Item {
         Rectangle {
             width: 22
             height: 22
-            radius: 6
+            radius: 8
             color: root.isSelected ? root.primaryColor : "transparent"
             border.color: root.isSelected ? root.primaryColor : root.textMuted
             border.width: 2
