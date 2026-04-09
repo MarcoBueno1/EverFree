@@ -219,6 +219,9 @@ void AppController::startScan()
         return;
     }
 
+    // Clear previous scan data
+    m_fileModel->clear();
+    m_reportModel->clear();
     clearErrors();
     m_mergedReport = batchpress::FileScanReport{};
     m_currentFolder = 0;

@@ -112,9 +112,9 @@ ApplicationWindow {
                 elide: Text.ElideMiddle
             }
 
-            // Contador de arquivos durante scan
+            // Contador de arquivos durante scan (apenas processamento, não amostragem)
             Label {
-                visible: appController.state === AppController.Scanning &&
+                visible: appController.state === AppController.Processing &&
                          appController.progressModel.total > 0
                 text: appController.progressModel.done + " / " +
                       appController.progressModel.total + " arquivos"
@@ -212,7 +212,7 @@ ApplicationWindow {
             case AppController.Idle:
                 if (current !== "homeModePicker" && current !== "simpleWelcome" && current !== "advancedWelcome") {
                     stackView.pop(null)
-                    if (appController.mode === AppController.Advanced) {
+                    if (appController.defaultMode === 2) {
                         stackView.push(advancedWelcomePage)
                     } else {
                         stackView.push(simpleWelcomePage)
@@ -226,10 +226,10 @@ ApplicationWindow {
                 }
                 break
             case AppController.ScanComplete:
-                if (appController.mode === AppController.Simple) {
-                    if (current !== "processPage") stackView.push(processPage)
-                } else {
+                if (appController.defaultMode === 2) {
                     if (current !== "selectPage") stackView.push(selectPage)
+                } else {
+                    if (current !== "processPage") stackView.push(processPage)
                 }
                 break
             case AppController.AwaitingConfirmation:

@@ -312,7 +312,9 @@ Page {
                     text: "← Voltar ao Início"
                     flat: true
                     Material.foreground: Material.hintTextColor
-                    onClicked: { appController.reset(); StackView.view.pop(null) }
+                    onClicked: {
+                        appController.cancel()
+                    }
                 }
 
                 Button {

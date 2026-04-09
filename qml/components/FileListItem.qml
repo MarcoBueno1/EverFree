@@ -5,10 +5,19 @@ import QtQuick.Layouts
 
 Item {
     id: root
-    height: visible ? 52 : 0
+    height: visible ? 64 : 0
     visible: matchesFilter
 
-    // Roles from FileItemModel - using direct model role binding
+    // Cores compartilhadas
+    property color primaryColor: "#10B981"
+    property color surfaceColor: "#1F2937"
+    property color surfaceHover: "#374151"
+    property color textPrimary: "#F9FAFB"
+    property color textSecondary: "#9CA3AF"
+    property color textMuted: "#6B7280"
+    property color successColor: "#10B981"
+    property color warningColor: "#F59E0B"
+
     property string filePath: model.filePath !== undefined ? model.filePath : ""
     property string fileName: model.fileName !== undefined ? model.fileName : ""
     property var fileSizeRaw: model.fileSize !== undefined ? model.fileSize : 0
@@ -24,16 +33,14 @@ Item {
     property int projHeight: model.projectedHeight !== undefined ? model.projectedHeight : 0
     property var durationSec: model.durationSec !== undefined ? model.durationSec : 0
     property bool isSelected: model.isSelected !== undefined ? model.isSelected : true
-    
+
     property string filterText: ""
-    property int filterType: 0 // 0=All, 1=Images, 2=Videos
+    property int filterType: 0
     property bool hovered: false
 
-    // Computed properties
     property string fileSize: formatFileSize(fileSizeRaw)
     property string projectedSize: formatFileSize(projectedSizeRaw)
 
-    // Filter matching logic
     property bool matchesFilter: {
         var typeMatch = filterType === 0 ||
             (filterType === 1 && isImage) ||
@@ -43,7 +50,6 @@ Item {
         return typeMatch && nameMatch
     }
 
-    // Helper function to format file size
     function formatFileSize(bytes) {
         if (bytes === undefined || bytes === null) return ""
         bytes = Number(bytes)
@@ -54,13 +60,14 @@ Item {
         return (bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0) + " " + sizes[i]
     }
 
+    // Fundo com hover
     Rectangle {
         anchors.fill: parent
-        anchors.margins: 2
-        radius: 8
-        color: root.hovered
-            ? Qt.lighter(Material.color(Material.Grey, Material.Shade800), 1.1)
-            : "transparent"
+        anchors.margins: 4
+        radius: 10
+        color: root.hovered ? root.surfaceHover : "transparent"
+        border.color: root.isSelected ? root.primaryColor : "transparent"
+        border.width: root.isSelected ? 1 : 0
 
         Behavior on color {
             ColorAnimation { duration: 150 }
@@ -73,115 +80,133 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onEntered: root.hovered = true
         onExited: root.hovered = false
+        onClicked: itemCheck.toggle()
     }
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 12
-        anchors.rightMargin: 12
-        spacing: 10
+        anchors.leftMargin: 16
+        anchors.rightMargin: 16
+        spacing: 14
 
-        // Checkbox
-        CheckBox {
-            id: itemCheck
-            checked: root.isSelected
-            Material.foreground: Material.color(Material.Green, Material.Shade300)
+        // Checkbox estilizado
+        Rectangle {
+            width: 22
+            height: 22
+            radius: 6
+            color: root.isSelected ? root.primaryColor : "transparent"
+            border.color: root.isSelected ? root.primaryColor : root.textMuted
+            border.width: 2
+            Layout.alignment: Qt.AlignVCenter
+
+            Label {
+                anchors.centerIn: parent
+                text: "✓"
+                font.pixelSize: 14
+                font.bold: true
+                color: "white"
+                visible: root.isSelected
+            }
         }
 
-        // Type icon
-        Label {
-            id: typeIcon
-            property bool isImage: root.isImage
-            text: isImage ? "\uD83D\uDDBC\uFE0F" : "\uD83C\uDFAC"
-            font.pixelSize: 18
+        // Ícone do tipo
+        Rectangle {
+            width: 36
+            height: 36
+            radius: 8
+            color: root.isImage ? "#3B82F6" : "#8B5CF6"
+            opacity: 0.2
+            Layout.alignment: Qt.AlignVCenter
+
+            Label {
+                anchors.centerIn: parent
+                text: root.isImage ? "🖼" : "🎬"
+                font.pixelSize: 18
+            }
         }
 
-        // File name and details
+        // Informações do arquivo
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 0
+            Layout.alignment: Qt.AlignVCenter
+            spacing: 4
 
             Label {
-                id: nameLabel
                 text: root.fileName
-                font.pixelSize: 13
-                color: Material.foreground
+                font.pixelSize: 14
+                font.bold: true
+                color: root.textPrimary
                 elide: Text.ElideMiddle
                 Layout.fillWidth: true
+                wrapMode: Text.NoWrap
             }
 
-            // Resolution or duration info
             Label {
-                property string detail: ""
                 text: {
                     var parts = []
                     if (root.fileWidth > 0 && root.fileHeight > 0)
-                        parts.push("%1\u00d7%2".arg(root.fileWidth).arg(root.fileHeight))
-                    if (root.durationSec !== 0 && root.durationSec !== "0")
-                        parts.push(root.durationSec)
+                        parts.push("%1×%2".arg(root.fileWidth).arg(root.fileHeight))
                     if (root.suggestedCodec !== "")
                         parts.push(root.suggestedCodec)
                     if (root.projWidth > 0 && root.projHeight > 0)
-                        parts.push("\u2192 %1\u00d7%2".arg(root.projWidth).arg(root.projHeight))
-                    return parts.join(" \u2022 ")
+                        parts.push("→ %1×%2".arg(root.projWidth).arg(root.projHeight))
+                    return parts.join(" • ")
                 }
-                font.pixelSize: 11
-                color: Material.hintTextColor
+                font.pixelSize: 12
+                color: root.textSecondary
                 visible: text !== ""
+                elide: Text.ElideRight
+                Layout.fillWidth: true
+                wrapMode: Text.NoWrap
             }
         }
 
-        // Size info: original -> projected
-        ColumnLayout {
-            spacing: 0
+        // Espaçador
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredWidth: 20
+        }
+
+        // Tamanho original → comprimido
+        RowLayout {
+            Layout.alignment: Qt.AlignVCenter
+            spacing: 6
+
+            Label {
+                text: root.fileSize
+                font.pixelSize: 13
+                color: root.textSecondary
+            }
+
+            Label {
+                text: "→"
+                font.pixelSize: 13
+                color: root.primaryColor
+            }
+
+            Label {
+                text: root.projectedSize
+                font.pixelSize: 13
+                font.bold: true
+                color: root.primaryColor
+            }
+        }
+
+        // Badge de economia
+        Rectangle {
+            width: 52
+            height: 26
+            radius: 13
+            color: root.savingsPct > 0 ? Qt.rgba(16, 185, 129, 0.2) : "transparent"
             Layout.alignment: Qt.AlignVCenter
 
-            RowLayout {
-                spacing: 4
-
-                Label {
-                    id: sizeLabel
-                    text: root.fileSize
-                    font.pixelSize: 12
-                    color: Material.hintTextColor
-                }
-
-                Label {
-                    text: "\u2192"
-                    font.pixelSize: 12
-                    color: Material.color(Material.Green, Material.Shade300)
-                }
-
-                Label {
-                    id: projectedLabel
-                    text: root.projectedSize
-                    font.pixelSize: 12
-                    font.bold: true
-                    color: Material.color(Material.Green, Material.Shade300)
-                }
+            Label {
+                anchors.centerIn: parent
+                text: root.savingsPct > 0 ? "-%1%".arg(Math.round(root.savingsPct)) : ""
+                font.pixelSize: 12
+                font.bold: true
+                color: root.savingsPct > 0 ? root.successColor : root.textMuted
             }
-        }
-
-        // Savings percentage
-        Label {
-            id: savingsLabel
-            property real value: root.savingsPct
-            text: value > 0 ? "-%1%".arg(Math.round(value)) : ""
-            font.pixelSize: 12
-            font.bold: true
-            color: value > 0 ? Material.color(Material.Green, Material.Shade300) : Material.hintTextColor
-            Layout.minimumWidth: 50
-            horizontalAlignment: Text.AlignHCenter
-        }
-
-        // Quality stars
-        Label {
-            id: starsLabel
-            text: root.qualityStars
-            font.pixelSize: 12
-            color: Material.color(Material.Yellow, Material.Shade300)
-            Layout.minimumWidth: 50
-            horizontalAlignment: Text.AlignHCenter
         }
     }
 }

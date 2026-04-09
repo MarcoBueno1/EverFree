@@ -14,6 +14,10 @@ Page {
 
     property bool hasErrors: appController.errorCount > 0
 
+    background: Rectangle {
+        color: Material.color(Material.Grey, Material.Shade800)
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 20
@@ -54,7 +58,7 @@ Page {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 220
-            Material.background: Material.color(Material.Grey, Material.Shade800)
+            Material.background: Material.color(Material.Grey, Material.Shade700)
             Material.elevation: 4
 
             ColumnLayout {
@@ -231,7 +235,7 @@ Page {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 160
-            Material.background: Material.color(Material.Grey, Material.Shade800)
+            Material.background: Material.color(Material.Grey, Material.Shade700)
             Material.elevation: 2
             visible: codecRepeater.count > 0
 
@@ -267,7 +271,7 @@ Page {
                     delegate: Rectangle {
                         width: 130
                         height: 50
-                        Material.background: Material.color(Material.Grey, Material.Shade700)
+                        Material.background: Material.color(Material.Grey, Material.Shade600)
                         Material.elevation: 1
 
                         ColumnLayout {
@@ -320,8 +324,7 @@ Page {
                 highlighted: false
                 Material.foreground: Material.foreground
                 onClicked: {
-                    appController.reset()
-                    StackView.view.pop(null)
+                    appController.cancel()
                 }
             }
 
@@ -342,8 +345,7 @@ Page {
                 font.pixelSize: 15
                 font.bold: true
                 onClicked: {
-                    appController.reset()
-                    StackView.view.pop(null)
+                    appController.cancel()
                 }
             }
         }

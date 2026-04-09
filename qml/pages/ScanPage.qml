@@ -242,8 +242,8 @@ Page {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: 10
-                color: Material.color(Material.Grey, Material.Shade900)
-                border.color: Material.color(Material.Grey, Material.Shade800)
+                color: Material.color(Material.Grey, Material.Shade700)
+                border.color: Material.color(Material.Grey, Material.Shade600)
                 border.width: 1
 
                 // Cabeçalho da lista
@@ -254,7 +254,7 @@ Page {
                     anchors.right: parent.right
                     height: 30
                     radius: 10
-                    color: Material.color(Material.Grey, Material.Shade800)
+                    color: Material.color(Material.Grey, Material.Shade600)
 
                     // Cobre cantos inferiores arredondados do header
                     Rectangle {
@@ -329,7 +329,7 @@ Page {
                         Rectangle {
                             anchors.fill: parent
                             radius: 4
-                            color: Material.color(Material.Grey, Material.Shade800)
+                            color: Material.color(Material.Grey, Material.Shade500)
                             opacity: mouseArea.containsMouse ? 1 : 0
                             Behavior on opacity {
                                 NumberAnimation { duration: 100 }
@@ -379,8 +379,8 @@ Page {
                                 width: savingsBadgeLabel.width + 10
                                 height: 18
                                 radius: 9
-                                color: Material.color(Material.Green, Material.Shade900)
-                                border.color: Material.color(Material.Green, Material.Shade700)
+                                color: Material.color(Material.Green, Material.Shade800)
+                                border.color: Material.color(Material.Green, Material.Shade600)
                                 border.width: 1
                                 visible: savingsPct > 0
 
@@ -564,8 +564,7 @@ Page {
                     flat: true
                     Material.foreground: Material.hintTextColor
                     onClicked: {
-                        appController.reset()
-                        StackView.view.pop(null)
+                        appController.cancel()
                     }
                 }
 
