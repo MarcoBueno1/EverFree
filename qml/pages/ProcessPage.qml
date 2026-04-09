@@ -211,7 +211,7 @@ Page {
                         color: Material.hintTextColor
                     }
 
-                    // Placeholder — would be connected to a real log model
+                    // FIX: Show placeholder message when no log model is available
                     ListView {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
@@ -232,6 +232,17 @@ Page {
                                 elide: Text.ElideMiddle
                                 Layout.fillWidth: true
                             }
+                        }
+
+                        // Placeholder when model is empty
+                        Label {
+                            anchors.centerIn: parent
+                            visible: parent.model === 0
+                            text: "Os arquivos processados aparecerão aqui"
+                            font.pixelSize: 13
+                            color: Material.hintTextColor
+                            horizontalAlignment: Text.AlignHCenter
+                            wrapMode: Text.WordWrap
                         }
                     }
                 }
@@ -329,10 +340,9 @@ Page {
                     Material.foreground: Material.primaryTextColor
                     font.pixelSize: 15; font.bold: true
                     onClicked: {
-                        // Navigate to report via appController state change instead of pushing duplicate
+                        // FIX: Use stackView.replace to avoid accumulating ReportPage instances
                         if (root.stackViewRef) {
-                            root.stackViewRef.pop(null)  // Pop this ProcessPage first
-                            root.stackViewRef.push(reportPageComp)
+                            root.stackViewRef.push(reportPageComp, StackView.ReplaceTransition)
                         }
                     }
                 }

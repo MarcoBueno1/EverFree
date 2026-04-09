@@ -148,6 +148,9 @@ void AppController::setState(AppState s)
 
 void AppController::addFolder(const QString& path)
 {
+    // FIX: Validate input — prevent empty or whitespace-only paths
+    if (path.trimmed().isEmpty()) return;
+
     if (!m_folderPaths.contains(path)) {
         m_folderPaths.append(path);
         emit folderPathsChanged();
@@ -308,9 +311,9 @@ void AppController::scanNextFolder()
     connect(m_scanWorker, &ScanWorker::scanFailed,
             this, &AppController::onScanFailed);
 
-    // FIX: Start thread BEFORE setting priority
-    m_scanWorker->start();
+    // FIX: Set priority BEFORE starting thread to ensure it takes effect
     m_scanWorker->setPriority(QThread::LowPriority);
+    m_scanWorker->start();
 }
 
 void AppController::onScanProgress(const QString& file, int done, int total)
@@ -511,7 +514,11 @@ void AppController::onProcessProgress(const QString& file, int done, int total,
 void AppController::onProcessComplete(batchpress::BatchReport report)
 {
     m_processingImages = false;
-    if (m_processWorker) { m_processWorker->deleteLater(); m_processWorker = nullptr; }
+    // FIX: Only call deleteLater if worker still exists (cancel() may have disconnected)
+    if (m_processWorker) {
+        m_processWorker->deleteLater();
+        m_processWorker = nullptr;
+    }
 
     if (!m_pendingVideoFiles.empty()) {
         startVideoProcessing();
@@ -711,25 +718,25 @@ void AppController::onSimpleVideoComplete(batchpress::VideoBatchReport result)
 void AppController::cancel()
 {
     // NON-BLOCKING: Disconnect signals, set cancel flag, let threads die naturally.
-    // FIX T2: Call deleteLater() before nulling pointer to prevent memory leak.
-    // Workers NO LONGER call deleteLater() themselves after cancel — we own cleanup.
+    // FIX: After disconnect, we own cleanup — workers' handlers check for nullptr
+    // before calling deleteLater(), preventing double-free.
 
     if (m_scanWorker) {
         disconnect(m_scanWorker, nullptr, this, nullptr);
         m_scanWorker->cancel();
-        m_scanWorker->deleteLater();  // FIX T2: ensure cleanup
+        m_scanWorker->deleteLater();  // Safe: we disconnected, handler won't double-call
         m_scanWorker = nullptr;
     }
     if (m_processWorker) {
         disconnect(m_processWorker, nullptr, this, nullptr);
         m_processWorker->cancel();
-        m_processWorker->deleteLater();  // FIX T2: ensure cleanup
+        m_processWorker->deleteLater();  // Safe: handler checks nullptr after disconnect
         m_processWorker = nullptr;
     }
     if (m_videoWorker) {
         disconnect(m_videoWorker, nullptr, this, nullptr);
         m_videoWorker->cancel();
-        m_videoWorker->deleteLater();  // FIX T2: ensure cleanup
+        m_videoWorker->deleteLater();  // Safe: handler checks nullptr after disconnect
         m_videoWorker = nullptr;
     }
 
@@ -746,18 +753,53 @@ void AppController::cancel()
 
 void AppController::cloudLogin(const QString& email, const QString& password)
 {
+    if (email.trimmed().isEmpty() || password.isEmpty()) {
+        emit cloudLoginFailed("E-mail e senha são obrigatórios");
+        return;
+    }
+
+    // Login é assíncrono — aguardar sinal de resultado do CloudProvider
+    // FIX: Connect to cloud provider result signals before calling login
+    QMetaObject::Connection successConn = connect(m_cloudProvider, &EverFree::CloudProvider::loginSuccess,
+        this, [this]() {
+            m_license->activatePro();
+            emit cloudLoginSuccess();
+            emit proStatusChanged();
+        }, Qt::SingleShotConnection);
+
+    QMetaObject::Connection failConn = connect(m_cloudProvider, &EverFree::CloudProvider::loginFailed,
+        this, [this, failConn, successConn](const QString& error) {
+            disconnect(successConn);
+            disconnect(failConn);
+            emit cloudLoginFailed(error);
+        }, Qt::SingleShotConnection);
+
     m_cloudProvider->login(email, password);
-    m_license->activatePro(); // Local testing — auto-activate pro
-    emit cloudLoginSuccess();
-    emit proStatusChanged();
 }
 
 void AppController::cloudRegister(const QString& email, const QString& password)
 {
+    if (email.trimmed().isEmpty() || password.isEmpty()) {
+        emit cloudLoginFailed("E-mail e senha são obrigatórios");
+        return;
+    }
+
+    // Register é assíncrono — aguardar sinal de resultado do CloudProvider
+    QMetaObject::Connection successConn = connect(m_cloudProvider, &EverFree::CloudProvider::registerSuccess,
+        this, [this]() {
+            m_license->activatePro();
+            emit cloudLoginSuccess();
+            emit proStatusChanged();
+        }, Qt::SingleShotConnection);
+
+    QMetaObject::Connection failConn = connect(m_cloudProvider, &EverFree::CloudProvider::registerFailed,
+        this, [this, failConn, successConn](const QString& error) {
+            disconnect(successConn);
+            disconnect(failConn);
+            emit cloudLoginFailed(error);
+        }, Qt::SingleShotConnection);
+
     m_cloudProvider->registerAccount(email, password);
-    m_license->activatePro();
-    emit cloudLoginSuccess();
-    emit proStatusChanged();
 }
 
 void AppController::cloudLogout()
@@ -798,9 +840,11 @@ void AppController::backupFile(const QString& localPath, qint64 fileSize)
     QString sha256 = hash.result().toHex();
 
     QString fileName = QFileInfo(localPath).fileName();
+    // FIX: Use QPointer to prevent dangling 'this' if AppController is destroyed
+    QPointer<AppController> guard(this);
     m_cloudProvider->uploadBackup(localPath, sha256, fileSize,
-        [this, fileName](const EverFree::CloudResult& result, const QString&) {
-            emit backupComplete(fileName, result.success);
+        [guard, fileName](const EverFree::CloudResult& result, const QString&) {
+            if (guard) emit guard->backupComplete(fileName, result.success);
         });
 }
 
@@ -808,9 +852,10 @@ void AppController::restoreFile(const QString& backupId, const QString& targetPa
 {
     if (!m_license || !m_license->isPro()) return;
 
+    QPointer<AppController> guard(this);
     m_cloudProvider->restoreBackup(backupId, targetPath,
-        [this](const EverFree::CloudResult& result) {
-            emit restoreComplete(result.success);
+        [guard](const EverFree::CloudResult& result) {
+            if (guard) emit guard->restoreComplete(result.success);
         });
 }
 
@@ -818,10 +863,13 @@ void AppController::fetchBackups()
 {
     if (!m_license || !m_license->isPro()) return;
 
+    QPointer<AppController> guard(this);
     m_cloudProvider->listBackups(
-        [this](const EverFree::CloudResult&, const QVector<EverFree::BackupEntry>& backups) {
-            m_backups = backups;
-            emit backupListReady();
+        [guard](const EverFree::CloudResult&, const QVector<EverFree::BackupEntry>& backups) {
+            if (guard) {
+                guard->m_backups = backups;
+                emit guard->backupListReady();
+            }
         });
 }
 

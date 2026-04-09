@@ -316,12 +316,12 @@ Page {
                         color: "transparent"
                         radius: 4
 
-                        // Animação de entrada
+                        // FIX: Only animate new items, not every visible item
                         opacity: 0
                         NumberAnimation on opacity {
                             from: 0; to: 1
                             duration: 220
-                            running: true
+                            running: parent.opacity === 0  // Only run once
                             easing.type: Easing.OutCubic
                         }
 

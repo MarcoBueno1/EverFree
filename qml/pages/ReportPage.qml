@@ -231,74 +231,53 @@ Page {
             }
         }
 
-        // Codec breakdown card — hidden until real model is available
-        // TODO: Connect to actual codec statistics model from C++
+        // Codec breakdown card — FIX: Show placeholder message
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 160
+            Layout.preferredHeight: 180
             Material.background: Material.color(Material.Grey, Material.Shade700)
             Material.elevation: 2
-            visible: false  // Disabled until real data source is available
 
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 20
                 spacing: 12
 
-                Label {
-                    text: qsTr("\uD83D\uDCCA Resumo por Codec")
-                    font.pixelSize: 16
-                    font.bold: true
-                    color: Material.foreground
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Label {
+                        text: "\uD83D\uDCCA Resumo por Codec"
+                        font.pixelSize: 16
+                        font.bold: true
+                        color: Material.foreground
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    Label {
+                        text: "Em breve"
+                        font.pixelSize: 11
+                        font.italic: true
+                        color: Material.hintTextColor
+                    }
                 }
 
-                GridView {
-                    id: codecGrid
+                // Placeholder message
+                ColumnLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    clip: true
-                    cellWidth: 150
-                    cellHeight: 60
+                    spacing: 8
 
-                    // Sample data - replace with actual codec model
-                    model: ListModel {
-                        id: codecModel
-                        ListElement { name: "AVIF"; count: 0; pct: 0 }
-                        ListElement { name: "WebP"; count: 0; pct: 0 }
-                        ListElement { name: "JPEG XL"; count: 0; pct: 0 }
-                        ListElement { name: "H.265"; count: 0; pct: 0 }
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: "Estatísticas detalhadas por codec estarão disponíveis em uma atualização futura."
+                        font.pixelSize: 13
+                        color: Material.hintTextColor
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.WordWrap
                     }
-
-                    delegate: Rectangle {
-                        width: 130
-                        height: 50
-                        Material.background: Material.color(Material.Grey, Material.Shade600)
-                        Material.elevation: 1
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: 8
-                            spacing: 2
-
-                            Label {
-                                text: model.name
-                                font.pixelSize: 13
-                                font.bold: true
-                                color: Material.accentColor
-                            }
-
-                            Label {
-                                text: "%1 arquivos".arg(model.count)
-                                font.pixelSize: 11
-                                color: Material.hintTextColor
-                            }
-                        }
-                    }
-                }
-
-                Repeater {
-                    id: codecRepeater
-                    model: 0
                 }
             }
         }

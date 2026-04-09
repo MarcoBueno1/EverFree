@@ -55,7 +55,7 @@ Dialog {
     Flickable {
         id: settingsFlickable
         anchors.fill: parent
-        contentHeight: 700
+        contentHeight: settingsColumn.implicitHeight + 20  // FIX: Dynamic height based on content
         clip: true
         interactive: contentHeight > height
 

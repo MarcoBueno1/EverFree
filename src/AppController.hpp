@@ -16,6 +16,7 @@
 #include <QVector>
 #include <QThread>
 #include <QSettings>
+#include <QPointer>
 
 #include <batchpress/types.hpp>
 #include <batchpress/scanner.hpp>

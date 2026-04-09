@@ -171,8 +171,16 @@ Page {
         title: qsTr("Selecionar Pasta")
         fileMode: FileDialog.Directory
         onAccepted: {
-            if (selectedFolder)
-                appController.addFolder(selectedFolder.toString().replace("file://", ""))
+            if (selectedFolder) {
+                // FIX: Use proper URL decoding for paths with special characters
+                var path = selectedFolder.toString()
+                if (path.startsWith("file://")) {
+                    path = path.substring(7)  // Remove "file://"
+                }
+                // Decode URL-encoded characters (e.g., %20 -> space)
+                path = decodeURIComponent(path)
+                appController.addFolder(path)
+            }
         }
     }
 }
