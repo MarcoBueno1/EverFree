@@ -233,6 +233,10 @@ endforeach()
 # ── Install ────────────────────────────────────────────────────────────────────
 install(TARGETS everfree RUNTIME DESTINATION bin)
 
+# ── Tests ──────────────────────────────────────────────────────────────────────
+enable_testing()
+add_subdirectory(tests)
+
 message(STATUS "")
 message(STATUS "╔══════════════════════════════════════════════╗")
 message(STATUS "║  EverFree ${PROJECT_VERSION} configured successfully!  ║")
