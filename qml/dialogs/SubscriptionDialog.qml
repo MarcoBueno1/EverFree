@@ -60,7 +60,7 @@ Dialog {
                 Layout.fillWidth: true
                 height: 100
                 radius: 12
-                color: Material.color(Material.Grey, Material.Shade800)
+                color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade200)
 
                 ColumnLayout {
                     anchors.fill: parent
@@ -103,7 +103,7 @@ Dialog {
                 Layout.fillWidth: true
                 height: 70
                 radius: 12
-                color: Material.color(Material.Grey, Material.Shade800)
+                color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade200)
 
                 ColumnLayout {
                     anchors.fill: parent

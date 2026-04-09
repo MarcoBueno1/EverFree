@@ -13,7 +13,8 @@ ApplicationWindow {
     minimumHeight: 560
     visible: true
     title: qsTr("EverFree \u2014 Libere espa\u00e7o no seu disco")
-    color: Material.color(Material.Grey, Material.Shade900)
+    // FIX: Use lighter grey for better contrast with dark theme background
+    color: themeManager.darkMode ? "#303030" : Material.color(Material.Grey, Material.Shade100)
 
     Material.theme: themeManager.darkMode ? Material.Dark : Material.Light
     Material.primary: Material.Green
@@ -108,9 +109,10 @@ ApplicationWindow {
     // ── Footer melhorado ────────────────────────────────────────────────────
     footer: Rectangle {
         id: appFooter
-        color: Material.color(Material.Grey, Material.Shade900)
+        // FIX: Use lighter grey for better contrast
+        color: themeManager.darkMode ? "#303030" : Material.color(Material.Grey, Material.Shade100)
         height: 44
-        border.color: Material.color(Material.Grey, Material.Shade800)
+        border.color: themeManager.darkMode ? "#505050" : Material.color(Material.Grey, Material.Shade400)
         border.width: 1
 
         readonly property bool isActive:

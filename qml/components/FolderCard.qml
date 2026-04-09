@@ -20,8 +20,10 @@ Rectangle {
     width: parent ? parent.width - 20 : 400
     height: 48
     radius: 12
-    color: hovered ? Material.color(Material.Grey, Material.Shade700) :
-                     Material.color(Material.Grey, Material.Shade800)
+    // FIX: Better contrast
+    color: hovered
+        ? (themeManager.darkMode ? "#4A4A4A" : Material.color(Material.Grey, Material.Shade200))
+        : (themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100))
 
     Behavior on color {
         ColorAnimation { duration: 150 }

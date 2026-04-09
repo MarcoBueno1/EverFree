@@ -225,7 +225,7 @@ Page {
             Layout.fillWidth: true
             height: 60
             Material.background: Material.color(Material.Grey, Material.Shade900)
-            border.color: Material.color(Material.Grey, Material.Shade800)
+            border.color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
             border.width: 1
 
             RowLayout {

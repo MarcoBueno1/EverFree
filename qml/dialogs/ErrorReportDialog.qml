@@ -48,7 +48,8 @@ Dialog {
                 width: errorListView.width - 10
                 height: 44
                 radius: 8
-                color: Material.color(Material.Grey, Material.Shade800)
+                // FIX: Use lighter grey for better contrast
+                color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade200)
 
                 RowLayout {
                     anchors.fill: parent

@@ -123,7 +123,7 @@ Page {
                     width: backupList.width - 10
                     height: 60
                     radius: 8
-                    color: Material.color(Material.Grey, Material.Shade800)
+                    color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
 
                     RowLayout {
                         anchors.fill: parent

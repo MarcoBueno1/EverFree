@@ -15,7 +15,8 @@ Page {
     property bool hasErrors: appController.errorCount > 0
 
     background: Rectangle {
-        color: Material.color(Material.Grey, Material.Shade800)
+        // FIX: Better contrast
+        color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
     }
 
     ColumnLayout {
@@ -58,7 +59,8 @@ Page {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 220
-            Material.background: Material.color(Material.Grey, Material.Shade700)
+            // FIX: Better contrast
+            Material.background: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
             Material.elevation: 4
 
             ColumnLayout {
@@ -235,7 +237,8 @@ Page {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 180
-            Material.background: Material.color(Material.Grey, Material.Shade700)
+            // FIX: Better contrast
+            Material.background: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
             Material.elevation: 2
 
             ColumnLayout {

@@ -100,7 +100,8 @@ Page {
                 value: progressModel.percent
                 background: Rectangle {
                     implicitHeight: 14; radius: 7
-                    color: Material.color(Material.Grey, Material.Shade700)
+                    // FIX: Better contrast
+                    color: themeManager.darkMode ? "#505050" : Material.color(Material.Grey, Material.Shade400)
                 }
                 contentItem: Rectangle {
                     implicitHeight: 14; radius: 7
@@ -117,7 +118,8 @@ Page {
                 Layout.fillWidth: true
                 height: 56
                 radius: 8
-                color: Material.color(Material.Grey, Material.Shade800)
+                // FIX: Better contrast
+                color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
 
                 RowLayout {
                     anchors.fill: parent
@@ -197,7 +199,8 @@ Page {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: 8
-                color: Material.color(Material.Grey, Material.Shade900)
+                // FIX: Better contrast
+                color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
 
                 ColumnLayout {
                     anchors.fill: parent

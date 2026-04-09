@@ -34,7 +34,7 @@ Page {
         anchors.verticalCenterOffset: -10
         width: Math.min(520, parent.width - 64)
         height: 360
-        color: Material.color(Material.Grey, Material.Shade800)
+        color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
         radius: 14
 
         ColumnLayout {

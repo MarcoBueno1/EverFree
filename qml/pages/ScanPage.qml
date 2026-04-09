@@ -18,7 +18,8 @@ Page {
 
     // ── Background da página ────────────────────────────────────────────────
     background: Rectangle {
-        color: Material.color(Material.Grey, Material.Shade900)
+        // FIX: Better contrast
+        color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
     }
 
     ColumnLayout {
@@ -74,7 +75,8 @@ Page {
                 Layout.fillWidth: true
                 height: 44
                 radius: 8
-                color: Material.color(Material.Grey, Material.Shade800)
+                // FIX: Better contrast
+                color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
                 border.color: Material.color(Material.Green, Material.Shade800)
                 border.width: 1
                 visible: appController.currentFolderName !== ""
@@ -211,7 +213,8 @@ Page {
                 Layout.fillWidth: true
                 height: 36
                 radius: 6
-                color: Material.color(Material.Grey, Material.Shade800)
+                // FIX: Better contrast
+                color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
                 visible: appController.progressModel.currentFile !== ""
 
                 RowLayout {
@@ -242,8 +245,10 @@ Page {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: 10
-                color: Material.color(Material.Grey, Material.Shade700)
-                border.color: Material.color(Material.Grey, Material.Shade600)
+                // FIX: Better contrast
+                color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
+                // FIX: Better contrast for border
+                border.color: themeManager.darkMode ? "#505050" : Material.color(Material.Grey, Material.Shade400)
                 border.width: 1
 
                 // Cabeçalho da lista
@@ -254,7 +259,8 @@ Page {
                     anchors.right: parent.right
                     height: 30
                     radius: 10
-                    color: Material.color(Material.Grey, Material.Shade600)
+                    // FIX: Better contrast
+                    color: themeManager.darkMode ? "#4A4A4A" : Material.color(Material.Grey, Material.Shade300)
 
                     // Cobre cantos inferiores arredondados do header
                     Rectangle {
@@ -446,8 +452,10 @@ Page {
                     width: 160
                     height: 88
                     radius: 10
-                    color: Material.color(Material.Grey, Material.Shade800)
-                    border.color: Material.color(Material.Grey, Material.Shade700)
+                    // FIX: Better contrast
+                    color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
+                    // FIX: Better contrast for border
+                    border.color: themeManager.darkMode ? "#505050" : Material.color(Material.Grey, Material.Shade400)
                     border.width: 1
 
                     ColumnLayout {

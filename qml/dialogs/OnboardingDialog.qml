@@ -27,7 +27,8 @@ Dialog {
 
     // Don't close on click outside
     background: Rectangle {
-        color: Material.color(Material.Grey, Material.Shade900)
+        // FIX: Use lighter grey for better contrast with text
+        color: themeManager.darkMode ? "#303030" : Material.color(Material.Grey, Material.Shade50)
         radius: 16
         border.color: Material.color(Material.Green, Material.Shade700)
         border.width: 2
@@ -249,7 +250,8 @@ Dialog {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 120
                     radius: 12
-                    color: Material.color(Material.Grey, Material.Shade800)
+                    // FIX: Use lighter grey for better contrast
+                    color: themeManager.darkMode ? "#3A3A3A" : Material.color(Material.Grey, Material.Shade100)
 
                     ColumnLayout {
                         anchors.fill: parent
