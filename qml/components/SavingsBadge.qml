@@ -28,6 +28,16 @@ Rectangle {
     Behavior on color {
         ColorAnimation { duration: 300 }
     }
+    
+    // FIX: Add accessibility and text label for colorblind users
+    Accessible.role: Accessible.StaticText
+    Accessible.name: qsTr("Economia de %1%").arg(Math.round(savingsPct))
+    Accessible.description: {
+        if (savingsPct >= 80) return "Excelente - Economia excelente"
+        if (savingsPct >= 50) return "Bom - Economia boa"
+        if (savingsPct >= 30) return "Moderado - Economia moderada"
+        return "Baixo - Economia baixa"
+    }
 
     RowLayout {
         id: badgeLayout

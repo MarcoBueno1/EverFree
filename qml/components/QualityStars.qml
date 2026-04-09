@@ -16,6 +16,11 @@ Row {
     property int maxStars: 5
 
     spacing: 2
+    
+    // FIX: Add accessibility for screen readers
+    Accessible.role: Accessible.StaticText
+    Accessible.name: qsTr("%1 de %2 estrelas").arg(stars).arg(maxStars)
+    Accessible.description: qsTr("Qualidade avaliada como %1 estrelas de %2").arg(stars).arg(maxStars)
 
     Repeater {
         model: maxStars

@@ -415,7 +415,7 @@ void AppController::onScanFailed(const QString& error)
 
 void AppController::startProcessing()
 {
-    if (m_state != AppState::ScanComplete && m_state != AppState::Selecting) return;
+    if (m_state != AppState::ScanComplete && m_state != AppState::AwaitingConfirmation) return;
     // Guard: prevent starting processing if a worker is already running
     if (m_processWorker || m_videoWorker) {
         m_simpleStatus = "\u26A0\uFE0F Processamento j\u00e1 em andamento";
@@ -758,20 +758,17 @@ void AppController::cloudLogin(const QString& email, const QString& password)
         return;
     }
 
-    // Login é assíncrono — aguardar sinal de resultado do CloudProvider
-    // FIX: Connect to cloud provider result signals before calling login
-    QMetaObject::Connection successConn = connect(m_cloudProvider, &EverFree::CloudProvider::loginSuccess,
-        this, [this]() {
-            m_license->activatePro();
-            emit cloudLoginSuccess();
-            emit proStatusChanged();
-        }, Qt::SingleShotConnection);
-
-    QMetaObject::Connection failConn = connect(m_cloudProvider, &EverFree::CloudProvider::loginFailed,
-        this, [this, failConn, successConn](const QString& error) {
-            disconnect(successConn);
-            disconnect(failConn);
-            emit cloudLoginFailed(error);
+    // Login é assíncrono — aguardar sinal authStateChanged
+    QMetaObject::Connection authConn = connect(m_cloudProvider, &EverFree::CloudProvider::authStateChanged,
+        this, [this, authConn](bool authenticated) {
+            disconnect(authConn);
+            if (authenticated) {
+                m_license->activatePro();
+                emit cloudLoginSuccess();
+                emit proStatusChanged();
+            } else {
+                emit cloudLoginFailed("Falha na autenticação");
+            }
         }, Qt::SingleShotConnection);
 
     m_cloudProvider->login(email, password);
@@ -784,19 +781,17 @@ void AppController::cloudRegister(const QString& email, const QString& password)
         return;
     }
 
-    // Register é assíncrono — aguardar sinal de resultado do CloudProvider
-    QMetaObject::Connection successConn = connect(m_cloudProvider, &EverFree::CloudProvider::registerSuccess,
-        this, [this]() {
-            m_license->activatePro();
-            emit cloudLoginSuccess();
-            emit proStatusChanged();
-        }, Qt::SingleShotConnection);
-
-    QMetaObject::Connection failConn = connect(m_cloudProvider, &EverFree::CloudProvider::registerFailed,
-        this, [this, failConn, successConn](const QString& error) {
-            disconnect(successConn);
-            disconnect(failConn);
-            emit cloudLoginFailed(error);
+    // Register não tem sinal separado — usar authStateChanged
+    QMetaObject::Connection authConn = connect(m_cloudProvider, &EverFree::CloudProvider::authStateChanged,
+        this, [this, authConn](bool authenticated) {
+            disconnect(authConn);
+            if (authenticated) {
+                m_license->activatePro();
+                emit cloudLoginSuccess();
+                emit proStatusChanged();
+            } else {
+                emit cloudLoginFailed("Falha no registro");
+            }
         }, Qt::SingleShotConnection);
 
     m_cloudProvider->registerAccount(email, password);
